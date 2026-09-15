@@ -1,0 +1,353 @@
+/* ============================================================
+   MATERIAL SCANNER AGENT
+   Global UI Styles
+   ============================================================ */
+
+/* ------------------------------------------------------------
+   COLOR SYSTEM
+   ------------------------------------------------------------ */
+
+:root {
+    --msa-primary: #8f005f;
+    --msa-primary-dark: #700048;
+    --msa-primary-light: #f8eaf3;
+
+    --msa-text: #1f2937;
+    --msa-text-muted: #6b7280;
+
+    --msa-bg: #ffffff;
+    --msa-bg-soft: #faf7fa;
+
+    --msa-border: #e5dce3;
+
+    --msa-low-bg: #fff8d9;
+    --msa-low-border: #f0d96b;
+    --msa-low-text: #806b00;
+
+    --msa-medium-bg: #fff0d6;
+    --msa-medium-border: #f0b45c;
+    --msa-medium-text: #8a4b00;
+
+    --msa-high-bg: #fde7e7;
+    --msa-high-border: #e58b8b;
+    --msa-high-text: #a00000;
+
+    --msa-info-bg: #eef6ff;
+    --msa-info-border: #b7d8f7;
+    --msa-info-text: #245b85;
+
+    --msa-radius: 12px;
+    --msa-shadow: 0 4px 18px rgba(70, 20, 55, 0.06);
+}
+
+
+/* ------------------------------------------------------------
+   MAIN APPLICATION
+   ------------------------------------------------------------ */
+
+.stApp {
+    background: var(--msa-bg);
+    color: var(--msa-text);
+}
+
+
+/* ------------------------------------------------------------
+   MAIN CONTENT WIDTH
+   ------------------------------------------------------------ */
+
+.block-container {
+    padding-top: 2rem;
+    padding-bottom: 4rem;
+}
+
+
+/* ------------------------------------------------------------
+   HEADINGS
+   ------------------------------------------------------------ */
+
+h1 {
+    color: var(--msa-text);
+    font-weight: 700;
+    letter-spacing: -0.5px;
+}
+
+h2 {
+    color: var(--msa-text);
+    font-weight: 700;
+}
+
+h3 {
+    color: var(--msa-text);
+    font-weight: 650;
+}
+
+
+/* ------------------------------------------------------------
+   PRIMARY BRAND ACCENT
+   ------------------------------------------------------------ */
+
+.msa-accent {
+    color: var(--msa-primary);
+}
+
+.msa-title {
+    color: var(--msa-text);
+    font-weight: 750;
+}
+
+.msa-subtitle {
+    color: var(--msa-text-muted);
+    font-size: 1rem;
+}
+
+
+/* ------------------------------------------------------------
+   GENERIC CARD
+   ------------------------------------------------------------ */
+
+.msa-card {
+    background: var(--msa-bg);
+    border: 1px solid var(--msa-border);
+    border-radius: var(--msa-radius);
+    padding: 1.25rem;
+    margin: 0.75rem 0;
+    box-shadow: var(--msa-shadow);
+}
+
+
+/* ------------------------------------------------------------
+   SECTION CARD
+   ------------------------------------------------------------ */
+
+.msa-section {
+    background: var(--msa-bg);
+    border: 1px solid var(--msa-border);
+    border-radius: 14px;
+    padding: 1.5rem;
+    margin: 1.25rem 0;
+}
+
+
+/* ------------------------------------------------------------
+   CHAT / BUBBLE
+   ------------------------------------------------------------ */
+
+.msa-bubble {
+    background: var(--msa-primary);
+    color: white;
+    border-radius: 18px 18px 4px 18px;
+    padding: 0.9rem 1.1rem;
+    margin: 0.5rem 0 0.75rem auto;
+    max-width: 85%;
+    box-shadow: 0 4px 12px rgba(143, 0, 95, 0.15);
+}
+
+
+/* ------------------------------------------------------------
+   EXTRACTED CONTENT
+   ------------------------------------------------------------ */
+
+.msa-slide-card {
+    background: #ffffff;
+    border: 1px solid var(--msa-border);
+    border-radius: 14px;
+    padding: 1.25rem 1.4rem;
+    margin: 0.9rem 0;
+    box-shadow: var(--msa-shadow);
+}
+
+.msa-slide-header {
+    color: var(--msa-primary);
+    font-weight: 700;
+    font-size: 1.05rem;
+    margin-bottom: 0.75rem;
+}
+
+.msa-slide-content {
+    color: var(--msa-text);
+    line-height: 1.65;
+}
+
+
+/* ------------------------------------------------------------
+   KEYWORD GROUP
+   ------------------------------------------------------------ */
+
+.msa-keyword-group {
+    background: var(--msa-bg-soft);
+    border: 1px solid var(--msa-border);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    margin: 0.6rem 0;
+}
+
+.msa-keyword-title {
+    color: var(--msa-primary);
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.msa-keywords {
+    color: var(--msa-text);
+    line-height: 1.7;
+}
+
+
+/* ------------------------------------------------------------
+   EVIDENCE CARD
+   ------------------------------------------------------------ */
+
+.msa-evidence-card {
+    background: #ffffff;
+    border-left: 4px solid var(--msa-primary);
+    border-top: 1px solid var(--msa-border);
+    border-right: 1px solid var(--msa-border);
+    border-bottom: 1px solid var(--msa-border);
+    border-radius: 10px;
+    padding: 1rem 1.2rem;
+    margin: 0.75rem 0;
+}
+
+.msa-evidence-slide {
+    color: var(--msa-primary);
+    font-weight: 700;
+}
+
+.msa-evidence-category {
+    color: var(--msa-text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.msa-evidence-text {
+    color: var(--msa-text);
+    line-height: 1.65;
+}
+
+
+/* ------------------------------------------------------------
+   RISK BADGES
+   ------------------------------------------------------------ */
+
+.msa-risk {
+    display: inline-block;
+    padding: 0.3rem 0.7rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 700;
+}
+
+.msa-risk-low {
+    background: var(--msa-low-bg);
+    color: var(--msa-low-text);
+    border: 1px solid var(--msa-low-border);
+}
+
+.msa-risk-medium {
+    background: var(--msa-medium-bg);
+    color: var(--msa-medium-text);
+    border: 1px solid var(--msa-medium-border);
+}
+
+.msa-risk-high {
+    background: var(--msa-high-bg);
+    color: var(--msa-high-text);
+    border: 1px solid var(--msa-high-border);
+}
+
+.msa-risk-review {
+    background: var(--msa-high-bg);
+    color: var(--msa-high-text);
+    border: 1px solid var(--msa-high-border);
+}
+
+
+/* ------------------------------------------------------------
+   STATUS BOX
+   ------------------------------------------------------------ */
+
+.msa-status {
+    border-radius: 10px;
+    padding: 0.9rem 1rem;
+    margin: 0.75rem 0;
+    font-weight: 600;
+}
+
+.msa-status-info {
+    background: var(--msa-info-bg);
+    border: 1px solid var(--msa-info-border);
+    color: var(--msa-info-text);
+}
+
+.msa-status-review {
+    background: var(--msa-high-bg);
+    border: 1px solid var(--msa-high-border);
+    color: var(--msa-high-text);
+}
+
+
+/* ------------------------------------------------------------
+   UPLOAD AREA
+   ------------------------------------------------------------ */
+
+[data-testid="stFileUploader"] {
+    border-radius: 14px;
+}
+
+
+/* ------------------------------------------------------------
+   BUTTON
+   ------------------------------------------------------------ */
+
+.stButton > button {
+    border-radius: 10px;
+    border: 1px solid var(--msa-primary);
+    color: var(--msa-primary);
+    font-weight: 650;
+}
+
+.stButton > button:hover {
+    border-color: var(--msa-primary-dark);
+    color: var(--msa-primary-dark);
+}
+
+
+/* ------------------------------------------------------------
+   DIVIDER
+   ------------------------------------------------------------ */
+
+hr {
+    border-color: var(--msa-border);
+}
+
+
+/* ------------------------------------------------------------
+   METRIC
+   ------------------------------------------------------------ */
+
+[data-testid="stMetric"] {
+    background: #ffffff;
+    border: 1px solid var(--msa-border);
+    border-radius: 14px;
+    padding: 1rem;
+    box-shadow: var(--msa-shadow);
+}
+
+
+/* ------------------------------------------------------------
+   ALERTS
+   ------------------------------------------------------------ */
+
+[data-testid="stAlert"] {
+    border-radius: 10px;
+}
+
+
+/* ------------------------------------------------------------
+   SMALL TEXT
+   ------------------------------------------------------------ */
+
+.msa-muted {
+    color: var(--msa-text-muted);
+    font-size: 0.9rem;
+}
