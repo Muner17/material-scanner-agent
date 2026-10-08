@@ -1,353 +1,4679 @@
 /* ============================================================
    MATERIAL SCANNER AGENT
-   Global UI Styles
+   UI / DESIGN SYSTEM
+   Clean replacement - 2026-09-17
    ============================================================ */
 
-/* ------------------------------------------------------------
-   COLOR SYSTEM
-   ------------------------------------------------------------ */
-
 :root {
-    --msa-primary: #8f005f;
-    --msa-primary-dark: #700048;
-    --msa-primary-light: #f8eaf3;
+    --msa-primary: #ff4b4b;
+    --msa-primary-dark: #d93d3d;
+    --msa-primary-light: #fff1f1;
 
-    --msa-text: #1f2937;
-    --msa-text-muted: #6b7280;
+    --msa-text: #18324b;
+    --msa-text-strong: #12395a;
+    --msa-text-muted: #6f8090;
 
     --msa-bg: #ffffff;
-    --msa-bg-soft: #faf7fa;
+    --msa-bg-soft: #fbf9fb;
 
-    --msa-border: #e5dce3;
+    --msa-border: #e4dce3;
+    --msa-border-soft: #eee8ed;
 
-    --msa-low-bg: #fff8d9;
-    --msa-low-border: #f0d96b;
-    --msa-low-text: #806b00;
+    --msa-success-bg: #eaf8ef;
+    --msa-success-border: #b8e3c7;
+    --msa-success-text: #177245;
 
-    --msa-medium-bg: #fff0d6;
-    --msa-medium-border: #f0b45c;
-    --msa-medium-text: #8a4b00;
+    --msa-info-bg: #eaf3ff;
+    --msa-info-border: #c5dcf7;
+    --msa-info-text: #1763a4;
 
-    --msa-high-bg: #fde7e7;
-    --msa-high-border: #e58b8b;
-    --msa-high-text: #a00000;
+    --msa-warning-bg: #fff7df;
+    --msa-warning-border: #efcf72;
+    --msa-warning-text: #8a6500;
 
-    --msa-info-bg: #eef6ff;
-    --msa-info-border: #b7d8f7;
-    --msa-info-text: #245b85;
+    --msa-error-bg: #fff0f0;
+    --msa-error-border: #e7aaaa;
+    --msa-error-text: #a12626;
 
-    --msa-radius: 12px;
-    --msa-shadow: 0 4px 18px rgba(70, 20, 55, 0.06);
+    --msa-low-bg: #eef9f1;
+    --msa-low-border: #bde4c8;
+    --msa-low-text: #247447;
+
+    --msa-medium-bg: #fff5e5;
+    --msa-medium-border: #efc681;
+    --msa-medium-text: #915900;
+
+    --msa-high-bg: #fff0f0;
+    --msa-high-border: #e7aaaa;
+    --msa-high-text: #a12626;
+
+    --msa-radius: 14px;
+    --msa-radius-sm: 10px;
+    --msa-shadow: 0 4px 18px rgba(30, 35, 50, 0.055);
 }
 
-
-/* ------------------------------------------------------------
-   MAIN APPLICATION
-   ------------------------------------------------------------ */
+/* ============================================================
+   STREAMLIT PAGE
+   ============================================================ */
 
 .stApp {
     background: var(--msa-bg);
     color: var(--msa-text);
 }
 
+[data-testid="stAppViewContainer"] > .main {
+    background: var(--msa-bg);
+}
 
-/* ------------------------------------------------------------
-   MAIN CONTENT WIDTH
-   ------------------------------------------------------------ */
+[data-testid="stHeader"] {
+    background: transparent;
+}
+
+[data-testid="stToolbar"] {
+    right: 1rem;
+}
 
 .block-container {
-    padding-top: 2rem;
-    padding-bottom: 4rem;
+    width: min(1240px, calc(100% - 48px));
+    max-width: 1240px;
+    margin: 0 auto;
+    padding: 2rem 0 4rem 0;
 }
 
-
-/* ------------------------------------------------------------
-   HEADINGS
-   ------------------------------------------------------------ */
-
-h1 {
-    color: var(--msa-text);
-    font-weight: 700;
-    letter-spacing: -0.5px;
+.stMarkdown,
+.stMarkdown > div {
+    max-width: 100%;
 }
 
-h2 {
-    color: var(--msa-text);
-    font-weight: 700;
+/* ============================================================
+   TYPOGRAPHY
+   ============================================================ */
+
+html,
+body,
+[class*="css"] {
+    font-family:
+        Inter,
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        Roboto,
+        Helvetica,
+        Arial,
+        sans-serif;
 }
 
-h3 {
-    color: var(--msa-text);
-    font-weight: 650;
+h1,
+h2,
+h3,
+h4 {
+    color: var(--msa-text-strong);
 }
 
-
-/* ------------------------------------------------------------
-   PRIMARY BRAND ACCENT
-   ------------------------------------------------------------ */
-
-.msa-accent {
-    color: var(--msa-primary);
+hr {
+    border: 0;
+    border-top: 1px solid var(--msa-border-soft);
+    margin: 2rem 0;
 }
 
-.msa-title {
-    color: var(--msa-text);
-    font-weight: 750;
+/* ============================================================
+   HERO
+   ============================================================ */
+
+.msa-hero {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 0.1rem 0 0.8rem;
 }
 
-.msa-subtitle {
+.msa-hero-icon {
+    width: 3rem;
+    height: 3rem;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+    font-size: 2.5rem;
+}
+
+.msa-hero-title {
+    color: var(--msa-text-strong);
+    font-size: clamp(2rem, 4vw, 3.15rem);
+    line-height: 1.08;
+    font-weight: 800;
+    letter-spacing: -0.045em;
+}
+
+.msa-hero-subtitle {
+    margin-top: 0.45rem;
     color: var(--msa-text-muted);
-    font-size: 1rem;
+    font-size: 0.98rem;
+    line-height: 1.5;
 }
 
+/* ============================================================
+   SECTION HEADERS
+   ============================================================ */
 
-/* ------------------------------------------------------------
+.msa-section-heading {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    margin: 1.8rem 0 0.85rem;
+}
+
+.msa-section-icon {
+    width: 2rem;
+    min-width: 2rem;
+    height: 2rem;
+    display: grid;
+    place-items: center;
+    font-size: 1.45rem;
+}
+
+.msa-section-title {
+    color: var(--msa-text-strong);
+    font-size: 1.75rem;
+    line-height: 1.2;
+    font-weight: 800;
+    letter-spacing: -0.025em;
+}
+
+.msa-section-subtitle {
+    margin-top: 0.25rem;
+    color: var(--msa-text-muted);
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+/* ============================================================
    GENERIC CARD
-   ------------------------------------------------------------ */
+   ============================================================ */
 
-.msa-card {
-    background: var(--msa-bg);
+.msa-card,
+.msa-section {
+    background: #ffffff;
     border: 1px solid var(--msa-border);
     border-radius: var(--msa-radius);
-    padding: 1.25rem;
-    margin: 0.75rem 0;
     box-shadow: var(--msa-shadow);
 }
 
-
-/* ------------------------------------------------------------
-   SECTION CARD
-   ------------------------------------------------------------ */
+.msa-card {
+    padding: 1.1rem 1.2rem;
+    margin: 0.75rem 0;
+}
 
 .msa-section {
-    background: var(--msa-bg);
+    padding: 1.3rem;
+    margin: 1rem 0;
+}
+
+/* ============================================================
+   REVIEW SUMMARY
+   ============================================================ */
+
+.msa-summary-card {
+    background: var(--msa-bg-soft);
     border: 1px solid var(--msa-border);
     border-radius: 14px;
-    padding: 1.5rem;
-    margin: 1.25rem 0;
+    padding: 1rem 1.1rem;
+    margin: 0.75rem 0 0.9rem;
 }
 
-
-/* ------------------------------------------------------------
-   CHAT / BUBBLE
-   ------------------------------------------------------------ */
-
-.msa-bubble {
-    background: var(--msa-primary);
-    color: white;
-    border-radius: 18px 18px 4px 18px;
-    padding: 0.9rem 1.1rem;
-    margin: 0.5rem 0 0.75rem auto;
-    max-width: 85%;
-    box-shadow: 0 4px 12px rgba(143, 0, 95, 0.15);
+.msa-summary-label {
+    color: var(--msa-text-muted);
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.055em;
+    margin-bottom: 0.35rem;
 }
 
+.msa-summary-text {
+    color: var(--msa-text-strong);
+    font-size: 1rem;
+    font-weight: 650;
+    line-height: 1.5;
+    overflow-wrap: anywhere;
+}
 
-/* ------------------------------------------------------------
-   EXTRACTED CONTENT
-   ------------------------------------------------------------ */
+.msa-ai-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.9rem 1.2rem;
+    margin-top: 0.65rem;
+    color: var(--msa-text-muted);
+    font-size: 0.8rem;
+}
 
-.msa-slide-card {
+.msa-ai-meta strong {
+    color: var(--msa-text);
+    margin-right: 0.25rem;
+}
+
+/* ============================================================
+   METRIC CARDS
+   ============================================================ */
+
+.msa-metric-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.85rem;
+    margin: 0.85rem 0 1rem;
+}
+
+.msa-metric-card {
+    min-height: 102px;
+    box-sizing: border-box;
     background: #ffffff;
     border: 1px solid var(--msa-border);
     border-radius: 14px;
-    padding: 1.25rem 1.4rem;
-    margin: 0.9rem 0;
+    padding: 1rem 1.05rem;
     box-shadow: var(--msa-shadow);
 }
 
-.msa-slide-header {
-    color: var(--msa-primary);
-    font-weight: 700;
+.msa-metric-label,
+.msa-small-label {
+    color: var(--msa-text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+    margin-bottom: 0.42rem;
+}
+
+.msa-metric-value {
+    color: var(--msa-text-strong);
+    font-size: 1.5rem;
+    line-height: 1.2;
+    font-weight: 800;
+    overflow-wrap: anywhere;
+}
+
+.msa-metric-value.status {
+    font-size: 1.18rem;
+}
+
+/* ============================================================
+   FINDINGS
+   ============================================================ */
+
+.msa-subsection {
+    margin: 1.1rem 0;
+}
+
+.msa-subsection-title {
+    color: var(--msa-text-strong);
     font-size: 1.05rem;
-    margin-bottom: 0.75rem;
+    font-weight: 780;
+    margin-bottom: 0.65rem;
 }
 
-.msa-slide-content {
-    color: var(--msa-text);
-    line-height: 1.65;
+.msa-findings {
+    display: flex;
+    flex-direction: column;
+    gap: 0.65rem;
 }
 
-
-/* ------------------------------------------------------------
-   KEYWORD GROUP
-   ------------------------------------------------------------ */
-
-.msa-keyword-group {
-    background: var(--msa-bg-soft);
+.msa-finding-card {
+    box-sizing: border-box;
+    background: #ffffff;
     border: 1px solid var(--msa-border);
-    border-radius: 12px;
-    padding: 1rem 1.1rem;
-    margin: 0.6rem 0;
+    border-radius: 14px;
+    padding: 1rem 1.05rem;
+    margin: 0;
+    box-shadow: var(--msa-shadow);
+}
+
+.msa-finding-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.msa-finding-title {
+    color: var(--msa-text-strong);
+    font-size: 0.98rem;
+    font-weight: 780;
+    line-height: 1.4;
+}
+
+.msa-finding-meta {
+    color: var(--msa-text-muted);
+    font-size: 0.78rem;
+    line-height: 1.5;
+    margin-top: 0.35rem;
+}
+
+.msa-finding-field {
+    margin-top: 0.75rem;
+}
+
+.msa-finding-label,
+.msa-evidence-label {
+    color: var(--msa-text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 0.3rem;
+}
+
+.msa-finding-text {
+    color: var(--msa-text);
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   STATUS / SEVERITY PILLS
+   ============================================================ */
+
+.msa-status-pill,
+.msa-severity,
+.msa-badge,
+.msa-context-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 auto;
+    border-radius: 999px;
+    padding: 0.3rem 0.65rem;
+    font-size: 0.7rem;
+    font-weight: 780;
+    line-height: 1.2;
+    border: 1px solid;
+    white-space: nowrap;
+}
+
+.msa-status-low {
+    background: var(--msa-low-bg);
+    border-color: var(--msa-low-border);
+    color: var(--msa-low-text);
+}
+
+.msa-status-medium {
+    background: var(--msa-medium-bg);
+    border-color: var(--msa-medium-border);
+    color: var(--msa-medium-text);
+}
+
+.msa-status-high {
+    background: var(--msa-high-bg);
+    border-color: var(--msa-high-border);
+    color: var(--msa-high-text);
+}
+
+.msa-status-info {
+    background: var(--msa-info-bg);
+    border-color: var(--msa-info-border);
+    color: var(--msa-info-text);
+}
+
+/* ============================================================
+   KEYWORD PANELS
+   ============================================================ */
+
+.msa-keyword-panel {
+    background: #ffffff;
+    border: 1px solid var(--msa-border);
+    border-radius: 14px;
+    padding: 0.95rem 1rem;
+    margin: 0.7rem 0;
 }
 
 .msa-keyword-title {
-    color: var(--msa-primary);
-    font-weight: 700;
-    margin-bottom: 0.5rem;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+    color: var(--msa-text-strong);
+    font-size: 0.9rem;
+    font-weight: 760;
+    margin-bottom: 0.55rem;
 }
 
-.msa-keywords {
-    color: var(--msa-text);
-    line-height: 1.7;
+.msa-chip-wrap {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
 }
 
+.msa-chip,
+.msa-chip-code,
+.msa-chip-it,
+.msa-chip-promo,
+.msa-chip-review {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.27rem 0.48rem;
+    border-radius: 5px;
+    font-family: Consolas, "SFMono-Regular", monospace;
+    font-size: 0.72rem;
+    line-height: 1.25;
+}
 
-/* ------------------------------------------------------------
-   EVIDENCE CARD
-   ------------------------------------------------------------ */
+.msa-chip {
+    background: #f2f6f3;
+    color: #087b61;
+}
+
+.msa-chip-code {
+    background: #f2f6f3;
+    color: #087b61;
+}
+
+.msa-chip-it {
+    background: #edf7f3;
+    color: #087b61;
+}
+
+.msa-chip-promo {
+    background: #fff4df;
+    color: #946000;
+}
+
+.msa-chip-review {
+    background: #fff0f0;
+    color: #a12626;
+}
+
+.msa-empty {
+    color: var(--msa-text-muted);
+    font-style: italic;
+}
+
+/* ============================================================
+   SLIDE REFERENCES
+   ============================================================ */
+
+.msa-reference-section {
+    margin-top: 1.2rem;
+}
+
+.msa-reference-row {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    background: #ffffff;
+    border: 1px solid var(--msa-border-soft);
+    border-radius: 10px;
+    padding: 0.55rem 0.7rem;
+    margin: 0.35rem 0;
+}
+
+.msa-reference-slide {
+    min-width: 80px;
+    color: var(--msa-text-strong);
+    font-size: 0.78rem;
+    font-weight: 760;
+}
+
+.msa-reference-keyword {
+    color: #087b61;
+    font-family: Consolas, monospace;
+    font-size: 0.75rem;
+}
+
+/* ============================================================
+   EVIDENCE
+   ============================================================ */
 
 .msa-evidence-card {
+    box-sizing: border-box;
     background: #ffffff;
-    border-left: 4px solid var(--msa-primary);
-    border-top: 1px solid var(--msa-border);
-    border-right: 1px solid var(--msa-border);
-    border-bottom: 1px solid var(--msa-border);
-    border-radius: 10px;
-    padding: 1rem 1.2rem;
+    border: 1px solid var(--msa-border);
+    border-radius: 14px;
+    padding: 1rem 1.05rem;
     margin: 0.75rem 0;
+    box-shadow: var(--msa-shadow);
+}
+
+.msa-evidence-top,
+.msa-ai-top,
+.msa-compliance-top,
+.msa-context-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
 }
 
 .msa-evidence-slide {
-    color: var(--msa-primary);
-    font-weight: 700;
+    color: var(--msa-text-strong);
+    font-size: 0.98rem;
+    font-weight: 780;
 }
 
-.msa-evidence-category {
-    color: var(--msa-text-muted);
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
+.msa-evidence-label {
+    margin-top: 0.9rem;
 }
 
 .msa-evidence-text {
     color: var(--msa-text);
     line-height: 1.65;
+    overflow-wrap: anywhere;
+    word-break: break-word;
 }
 
+/* ============================================================
+   CONTEXT ANALYSIS
+   ============================================================ */
 
-/* ------------------------------------------------------------
-   RISK BADGES
-   ------------------------------------------------------------ */
-
-.msa-risk {
-    display: inline-block;
-    padding: 0.3rem 0.7rem;
-    border-radius: 999px;
-    font-size: 0.85rem;
-    font-weight: 700;
-}
-
-.msa-risk-low {
-    background: var(--msa-low-bg);
-    color: var(--msa-low-text);
-    border: 1px solid var(--msa-low-border);
-}
-
-.msa-risk-medium {
-    background: var(--msa-medium-bg);
-    color: var(--msa-medium-text);
-    border: 1px solid var(--msa-medium-border);
-}
-
-.msa-risk-high {
-    background: var(--msa-high-bg);
-    color: var(--msa-high-text);
-    border: 1px solid var(--msa-high-border);
-}
-
-.msa-risk-review {
-    background: var(--msa-high-bg);
-    color: var(--msa-high-text);
-    border: 1px solid var(--msa-high-border);
-}
-
-
-/* ------------------------------------------------------------
-   STATUS BOX
-   ------------------------------------------------------------ */
-
-.msa-status {
-    border-radius: 10px;
-    padding: 0.9rem 1rem;
-    margin: 0.75rem 0;
-    font-weight: 600;
-}
-
-.msa-status-info {
-    background: var(--msa-info-bg);
-    border: 1px solid var(--msa-info-border);
-    color: var(--msa-info-text);
-}
-
-.msa-status-review {
-    background: var(--msa-high-bg);
-    border: 1px solid var(--msa-high-border);
-    color: var(--msa-high-text);
-}
-
-
-/* ------------------------------------------------------------
-   UPLOAD AREA
-   ------------------------------------------------------------ */
-
-[data-testid="stFileUploader"] {
-    border-radius: 14px;
-}
-
-
-/* ------------------------------------------------------------
-   BUTTON
-   ------------------------------------------------------------ */
-
-.stButton > button {
-    border-radius: 10px;
-    border: 1px solid var(--msa-primary);
-    color: var(--msa-primary);
-    font-weight: 650;
-}
-
-.stButton > button:hover {
-    border-color: var(--msa-primary-dark);
-    color: var(--msa-primary-dark);
-}
-
-
-/* ------------------------------------------------------------
-   DIVIDER
-   ------------------------------------------------------------ */
-
-hr {
-    border-color: var(--msa-border);
-}
-
-
-/* ------------------------------------------------------------
-   METRIC
-   ------------------------------------------------------------ */
-
-[data-testid="stMetric"] {
+.msa-context-card {
+    box-sizing: border-box;
     background: #ffffff;
     border: 1px solid var(--msa-border);
     border-radius: 14px;
-    padding: 1rem;
+    padding: 1rem 1.05rem;
+    margin: 0.75rem 0;
     box-shadow: var(--msa-shadow);
 }
 
+.msa-context-header {
+    align-items: center;
+}
 
-/* ------------------------------------------------------------
+.msa-context-slide {
+    color: var(--msa-text-strong);
+    font-size: 0.98rem;
+    font-weight: 780;
+}
+
+.msa-context-badge {
+    background: var(--msa-info-bg);
+    border-color: var(--msa-info-border);
+    color: var(--msa-info-text);
+}
+
+.msa-context-grid {
+    display: grid;
+    grid-template-columns: 160px 1fr;
+    gap: 1.25rem;
+    margin-top: 0.9rem;
+    padding-top: 0.85rem;
+    border-top: 1px solid var(--msa-border-soft);
+}
+
+.msa-context-label {
+    color: var(--msa-text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.msa-confidence {
+    color: var(--msa-text-strong);
+    font-size: 1.25rem;
+    font-weight: 800;
+}
+
+.msa-context-reason {
+    color: var(--msa-text);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   AI CONTEXT ANALYSIS
+   ============================================================ */
+
+.msa-ai-card {
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 1px solid var(--msa-border);
+    border-radius: 14px;
+    padding: 1rem 1.05rem;
+    margin: 0.75rem 0;
+    box-shadow: var(--msa-shadow);
+}
+
+.msa-ai-field {
+    margin-top: 0.85rem;
+    color: var(--msa-text);
+    line-height: 1.58;
+    overflow-wrap: anywhere;
+}
+
+.msa-ai-field-label {
+    color: var(--msa-text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.045em;
+    margin-bottom: 0.25rem;
+}
+
+.msa-ai-recommendation {
+    border-left: 3px solid var(--msa-primary);
+    padding-left: 0.8rem;
+}
+
+/* ============================================================
    ALERTS
-   ------------------------------------------------------------ */
+   ============================================================ */
+
+.msa-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.65rem;
+    border: 1px solid;
+    border-radius: 14px;
+    padding: 0.82rem 0.95rem;
+    margin: 0.65rem 0 0.85rem;
+    line-height: 1.5;
+    font-size: 0.86rem;
+}
+
+.msa-alert-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex: 0 0 auto;
+    margin-top: 0.42rem;
+    background: currentColor;
+}
+
+.msa-alert-success {
+    background: var(--msa-success-bg);
+    border-color: var(--msa-success-border);
+    color: var(--msa-success-text);
+}
+
+.msa-alert-info {
+    background: var(--msa-info-bg);
+    border-color: var(--msa-info-border);
+    color: var(--msa-info-text);
+}
+
+.msa-alert-warning {
+    background: var(--msa-warning-bg);
+    border-color: var(--msa-warning-border);
+    color: var(--msa-warning-text);
+}
+
+.msa-alert-error {
+    background: var(--msa-error-bg);
+    border-color: var(--msa-error-border);
+    color: var(--msa-error-text);
+}
+
+/* ============================================================
+   COMPLIANCE
+   ============================================================ */
+
+.msa-compliance-card {
+    background: #ffffff;
+    border: 1px solid var(--msa-border);
+    border-radius: 14px;
+    padding: 1rem 1.05rem;
+    margin: 0.75rem 0;
+    box-shadow: var(--msa-shadow);
+}
+
+.msa-compliance-title {
+    color: var(--msa-text-strong);
+    font-size: 1rem;
+    font-weight: 780;
+}
+
+.msa-compliance-message {
+    margin-top: 0.25rem;
+    color: var(--msa-text-muted);
+    line-height: 1.5;
+    max-width: 900px;
+}
+
+.msa-status-text {
+    color: var(--msa-text);
+    font-weight: 650;
+}
+
+.msa-disclaimer {
+    background: #f7f8fa;
+    border: 1px solid var(--msa-border-soft);
+    border-radius: 14px;
+    color: var(--msa-text-muted);
+    padding: 0.85rem 0.95rem;
+    margin-top: 1rem;
+    font-size: 0.78rem;
+    line-height: 1.55;
+}
+
+/* ============================================================
+   EXTRACTED CONTENT
+   ============================================================ */
+
+.msa-slide-card {
+    width: 100%;
+    box-sizing: border-box;
+    background: #ffffff;
+    border: 1px solid var(--msa-border);
+    border-radius: 16px;
+    padding: 1.05rem 1.15rem 1.15rem;
+    margin: 0.85rem 0;
+    box-shadow: var(--msa-shadow);
+}
+
+.msa-extracted-card {
+    overflow: visible;
+}
+
+.msa-slide-topline {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.8rem;
+}
+
+.msa-slide-pill {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.34rem 0.75rem;
+    border-radius: 999px;
+    background: var(--msa-primary-light);
+    color: var(--msa-primary-dark);
+    border: 1px solid #f0cccc;
+    font-size: 0.78rem;
+    font-weight: 760;
+}
+
+.msa-slide-count {
+    color: var(--msa-text-muted);
+    font-size: 0.74rem;
+    white-space: nowrap;
+}
+
+.msa-extracted-bubble {
+    position: relative;
+    width: calc(100% - 1rem);
+    box-sizing: border-box;
+    margin-left: 1rem;
+    background: var(--msa-bg-soft);
+    border: 1px solid var(--msa-border);
+    border-radius: 17px 17px 6px 17px;
+    padding: 0.95rem 1.1rem 1rem;
+    box-shadow: 0 4px 14px rgba(31, 41, 55, 0.04);
+}
+
+.msa-extracted-bubble::before {
+    content: "";
+    position: absolute;
+    left: -8px;
+    bottom: 12px;
+    width: 15px;
+    height: 15px;
+    background: var(--msa-bg-soft);
+    border-left: 1px solid var(--msa-border);
+    border-bottom: 1px solid var(--msa-border);
+    transform: rotate(45deg);
+}
+
+.msa-extracted-bubble-label {
+    position: relative;
+    color: var(--msa-text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.45rem;
+}
+
+.msa-extracted-list {
+    position: relative;
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.msa-extracted-item {
+    color: var(--msa-text);
+    line-height: 1.62;
+    margin: 0.3rem 0;
+    padding-left: 0.15rem;
+    overflow-wrap: anywhere;
+}
+
+.msa-extracted-item::marker {
+    color: var(--msa-primary);
+    font-size: 0.85em;
+}
+
+.msa-extracted-empty {
+    background: var(--msa-bg-soft);
+    border: 1px dashed var(--msa-border);
+    border-radius: 12px;
+    color: var(--msa-text-muted);
+    padding: 0.9rem 1rem;
+    font-size: 0.86rem;
+    font-style: italic;
+}
+
+/* ============================================================
+   UPLOAD / PROCESSING
+   ============================================================ */
+
+.msa-upload-card {
+    background: var(--msa-bg-soft);
+    border: 1px dashed var(--msa-border);
+    border-radius: 16px;
+    padding: 1rem;
+}
+
+.msa-upload-status {
+    border-radius: 12px;
+    padding: 0.85rem 0.95rem;
+    margin: 0.65rem 0;
+    border: 1px solid;
+}
+
+.msa-upload-status-success {
+    background: var(--msa-success-bg);
+    border-color: var(--msa-success-border);
+    color: var(--msa-success-text);
+}
+
+.msa-upload-status-info {
+    background: var(--msa-info-bg);
+    border-color: var(--msa-info-border);
+    color: var(--msa-info-text);
+}
+
+.msa-upload-status-warning {
+    background: var(--msa-warning-bg);
+    border-color: var(--msa-warning-border);
+    color: var(--msa-warning-text);
+}
+
+.msa-upload-status-label {
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.055em;
+    opacity: 0.8;
+}
+
+.msa-upload-status-text {
+    margin-top: 0.12rem;
+    font-size: 0.88rem;
+    overflow-wrap: anywhere;
+}
+
+.msa-empty-upload {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    border: 1px dashed var(--msa-border);
+    background: var(--msa-bg-soft);
+    border-radius: 16px;
+    padding: 1rem 1.1rem;
+    color: var(--msa-text-muted);
+}
+
+.msa-empty-upload-icon {
+    font-size: 1.65rem;
+}
+
+.msa-empty-upload-title {
+    color: var(--msa-text);
+    font-weight: 650;
+}
+
+.msa-empty-upload-text {
+    margin-top: 0.15rem;
+    font-size: 0.84rem;
+}
+
+/* ============================================================
+   TECHNICAL / EMPTY
+   ============================================================ */
+
+.msa-empty-card,
+.msa-technical-note {
+    background: var(--msa-bg-soft);
+    border: 1px dashed var(--msa-border);
+    border-radius: 12px;
+    color: var(--msa-text-muted);
+    padding: 0.9rem 1rem;
+}
+
+.msa-technical-note {
+    margin-top: 0.7rem;
+    font-size: 0.76rem;
+    overflow-wrap: anywhere;
+}
+
+/* ============================================================
+   PROFILE / BUTTONS
+   Keep Streamlit buttons visually consistent.
+   ============================================================ */
+
+div.stButton > button {
+    min-height: 42px;
+    border-radius: 9px;
+    border: 1px solid #d7d7dc;
+    background: #ffffff;
+    color: var(--msa-text-strong);
+    font-weight: 650;
+    transition: all 0.15s ease;
+}
+
+div.stButton > button:hover {
+    border-color: var(--msa-primary);
+    color: var(--msa-primary-dark);
+}
+
+div.stButton > button:focus:not(:active) {
+    border-color: var(--msa-primary);
+    box-shadow: 0 0 0 2px rgba(255, 75, 75, 0.12);
+}
+
+div.stButton > button[kind="primary"],
+button[kind="primary"] {
+    background: var(--msa-primary) !important;
+    border-color: var(--msa-primary) !important;
+    color: #ffffff !important;
+}
+
+div.stButton > button[kind="primary"]:hover:not(:disabled),
+button[kind="primary"]:hover:not(:disabled) {
+    background: var(--msa-primary-dark) !important;
+    border-color: var(--msa-primary-dark) !important;
+    color: #ffffff !important;
+}
+
+/* Disabled primary button: keep the disabled appearance.
+   app.py still controls the actual disabled/enabled function. */
+div.stButton > button[kind="primary"]:disabled,
+button[kind="primary"]:disabled {
+    background: #e5e7eb !important;
+    border-color: #d1d5db !important;
+    color: #9ca3af !important;
+    cursor: not-allowed !important;
+    opacity: 1 !important;
+    box-shadow: none !important;
+}
+
+/* ============================================================
+   STREAMLIT ALERT CLEANUP
+   ============================================================ */
 
 [data-testid="stAlert"] {
+    border-radius: 14px;
+}
+
+/* ============================================================
+   RESPONSIVE
+   Desktop -> iPad -> Mobile
+   ============================================================ */
+
+@media (max-width: 1024px) {
+    .block-container {
+        width: min(100%, calc(100% - 32px));
+    }
+
+    .msa-metric-grid {
+        gap: 0.75rem;
+    }
+
+    .msa-metric-card {
+        min-height: 96px;
+    }
+}
+
+@media (max-width: 760px) {
+    .block-container {
+        width: calc(100% - 24px);
+        padding-top: 1.2rem;
+        padding-bottom: 2.5rem;
+    }
+
+    .msa-hero {
+        align-items: flex-start;
+    }
+
+    .msa-hero-title {
+        font-size: 2rem;
+    }
+
+    .msa-section-title {
+        font-size: 1.5rem;
+    }
+
+    .msa-metric-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .msa-metric-card {
+        min-height: auto;
+    }
+
+    .msa-finding-top,
+    .msa-evidence-top,
+    .msa-ai-top,
+    .msa-compliance-top,
+    .msa-context-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .msa-status-pill,
+    .msa-severity,
+    .msa-context-badge {
+        align-self: flex-start;
+    }
+
+    .msa-context-grid {
+        grid-template-columns: 1fr;
+        gap: 0.8rem;
+    }
+
+    .msa-extracted-bubble {
+        margin-left: 0.5rem;
+        width: calc(100% - 0.5rem);
+    }
+}
+
+@media (max-width: 480px) {
+    .block-container {
+        width: calc(100% - 18px);
+    }
+
+    .msa-hero-title {
+        font-size: 1.72rem;
+    }
+
+    .msa-hero-subtitle {
+        font-size: 0.84rem;
+    }
+
+    .msa-section-title {
+        font-size: 1.4rem;
+    }
+
+    .msa-slide-card,
+    .msa-evidence-card,
+    .msa-ai-card,
+    .msa-compliance-card,
+    .msa-context-card {
+        padding: 0.85rem;
+    }
+
+    .msa-extracted-bubble {
+        padding: 0.8rem 0.9rem;
+    }
+
+    .msa-reference-row {
+        align-items: flex-start;
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+
+    .msa-reference-slide {
+        min-width: auto;
+    }
+}
+
+
+/* ============================================================
+   FINDINGS / EVIDENCE — EVIDENCE-BASED REVIEW UX
+   Added for the 2026-09-21 review experience.
+   ============================================================ */
+
+.msa-finding-card-low {
+    border-left: 4px solid var(--msa-low-text);
+}
+
+.msa-finding-card-medium {
+    border-left: 4px solid var(--msa-medium-text);
+}
+
+.msa-finding-card-high {
+    border-left: 4px solid var(--msa-high-text);
+}
+
+.msa-finding-preview {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.8rem;
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--msa-border-soft);
+}
+
+.msa-finding-preview-block {
+    background: var(--msa-bg-soft);
+    border: 1px solid var(--msa-border-soft);
     border-radius: 10px;
+    padding: 0.75rem 0.8rem;
+}
+
+.msa-finding-inline-note {
+    margin-top: 0.8rem;
+    padding: 0.65rem 0.75rem;
+    border-left: 3px solid var(--msa-border);
+    color: var(--msa-text-muted);
+    background: #fafafa;
+    border-radius: 0 8px 8px 0;
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+.msa-finding-action-text {
+    font-weight: 650;
+}
+
+.msa-evidence-section {
+    margin-top: 0.95rem;
+}
+
+.msa-evidence-quote {
+    background: var(--msa-bg-soft);
+    border: 1px solid var(--msa-border-soft);
+    border-left: 4px solid var(--msa-primary);
+    border-radius: 10px;
+    padding: 0.7rem 0.8rem;
+    line-height: 1.55;
+}
+
+.msa-evidence-quote .msa-chip {
+    margin: 0.15rem 0.25rem 0.15rem 0;
+}
+
+.msa-rule-reference {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    flex-wrap: wrap;
+    color: var(--msa-text);
+    background: #fafafa;
+    border: 1px solid var(--msa-border-soft);
+    border-radius: 10px;
+    padding: 0.65rem 0.75rem;
+}
+
+.msa-rule-reference strong {
+    color: var(--msa-text-strong);
+}
+
+.msa-evidence-explanation {
+    color: var(--msa-text);
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+}
+
+.msa-evidence-action {
+    background: var(--msa-bg-soft);
+    border-radius: 10px;
+    padding: 0.75rem 0.8rem;
+}
+
+.msa-evidence-recommendation {
+    color: var(--msa-text);
+    line-height: 1.6;
+    font-weight: 650;
+    overflow-wrap: anywhere;
+}
+
+.msa-evidence-source {
+    margin-top: 0.8rem;
+    padding-top: 0.65rem;
+    border-top: 1px solid var(--msa-border-soft);
+    color: var(--msa-text-muted);
+    font-size: 0.7rem;
+}
+
+@media (max-width: 760px) {
+    .msa-finding-preview {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ============================================================
+   AI FINDING EXPLANATION — CONTEXT-AWARE REVIEW SUPPORT
+   ============================================================ */
+
+.msa-ai-finding-box {
+    margin-top: 1rem;
+    padding: 0.9rem;
+    border: 1px solid var(--msa-border-soft);
+    border-radius: 10px;
+    background: #f8fbff;
+}
+
+.msa-ai-finding-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+}
+
+.msa-ai-finding-label {
+    color: var(--msa-text-muted);
+    font-size: 0.62rem;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin-bottom: 0.25rem;
+}
+
+.msa-ai-finding-title {
+    color: var(--msa-text-strong);
+    font-size: 0.9rem;
+    font-weight: 750;
+}
+
+.msa-ai-finding-reason {
+    color: var(--msa-text);
+    line-height: 1.6;
+    margin-bottom: 0.7rem;
+}
+
+.msa-ai-finding-context,
+.msa-ai-finding-action {
+    padding: 0.7rem 0.75rem;
+    border: 1px solid var(--msa-border-soft);
+    border-radius: 8px;
+    background: #ffffff;
+    margin-top: 0.55rem;
+    color: var(--msa-text);
+    line-height: 1.55;
+}
+
+.msa-ai-finding-action {
+    background: var(--msa-bg-soft);
+}
+
+.msa-ai-finding-disclaimer {
+    margin-top: 0.7rem;
+    color: var(--msa-text-muted);
+    font-size: 0.68rem;
+    line-height: 1.45;
+}
+
+.msa-ai-note {
+    margin-top: 0.8rem;
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--msa-border-soft);
+    border-radius: 8px;
+    background: #fafafa;
+    color: var(--msa-text-muted);
+    font-size: 0.72rem;
+    line-height: 1.5;
+}
+
+@media (max-width: 760px) {
+    .msa-ai-finding-header {
+        flex-direction: column;
+    }
 }
 
 
 /* ------------------------------------------------------------
-   SMALL TEXT
+   Pre-Review Report / Cover Page
    ------------------------------------------------------------ */
+.msa-report-intro {
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 16px 18px;
+    margin-bottom: 14px;
+}
 
-.msa-muted {
+.msa-report-status-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #0f3f68;
+    font-size: 13px;
+}
+
+.msa-report-status-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 26px;
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .35px;
+    white-space: nowrap;
+}
+
+.msa-report-status-pass {
+    color: #166534;
+    background: #ecfdf3;
+    border: 1px solid #bbf7d0;
+}
+
+.msa-report-status-review {
+    color: #9a5b00;
+    background: #fff8e7;
+    border: 1px solid #f6c453;
+}
+
+.msa-report-note {
+    margin-top: 9px;
+    color: #64748b;
+    font-size: 11px;
+}
+
+.msa-report-preview {
+    margin-top: 16px;
+    border: 1px solid #dbe3ea;
+    border-radius: 14px;
+    background: #ffffff;
+    padding: 20px;
+    box-shadow: 0 6px 18px rgba(15, 63, 104, .05);
+}
+
+.msa-report-preview-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    padding-bottom: 15px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.msa-report-preview-label {
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.msa-report-preview-title {
+    margin-top: 5px;
+    color: #0f3f68;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.msa-report-preview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.msa-report-preview-grid > div {
+    border: 1px solid #e5e7eb;
+    border-radius: 9px;
+    padding: 12px;
+}
+
+.msa-report-preview-grid span {
+    display: block;
+    color: #64748b;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .8px;
+    text-transform: uppercase;
+}
+
+.msa-report-preview-grid strong {
+    display: block;
+    margin-top: 6px;
+    color: #0f3f68;
+    font-size: 14px;
+    word-break: break-word;
+}
+
+.msa-report-preview-message {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #0f3f68;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+@media (max-width: 800px) {
+    .msa-report-preview-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 560px) {
+    .msa-report-status-line,
+    .msa-report-preview-head {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .msa-report-preview-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ============================================================
+   FINDINGS CARD — SEVERITY VISUAL FIX
+   Keep the Finding card white.
+   Severity color is used only as a left-side accent.
+   The severity pill keeps its own color.
+   ============================================================ */
+
+.msa-finding-card {
+    background: #ffffff !important;
+}
+
+/* The app currently applies msa-status-* to the finding card
+   as well as to the severity pill. Override the card-level
+   background so the status pill remains colored without
+   tinting the entire Finding card. */
+
+.msa-finding-card.msa-status-low,
+.msa-finding-card.msa-status-medium,
+.msa-finding-card.msa-status-high,
+.msa-finding-card.msa-status-info {
+    background: #ffffff !important;
+}
+
+/* Severity is represented by a slim left accent on the card. */
+
+.msa-finding-card.msa-status-low {
+    border-left: 4px solid var(--msa-low-border) !important;
+}
+
+.msa-finding-card.msa-status-medium {
+    border-left: 4px solid var(--msa-medium-border) !important;
+}
+
+.msa-finding-card.msa-status-high {
+    border-left: 4px solid var(--msa-high-border) !important;
+}
+
+.msa-finding-card.msa-status-info {
+    border-left: 4px solid var(--msa-info-border) !important;
+}
+
+/* Keep the actual severity pill unchanged. */
+.msa-finding-card .msa-status-pill.msa-status-low {
+    background: var(--msa-low-bg) !important;
+    border-color: var(--msa-low-border) !important;
+    color: var(--msa-low-text) !important;
+}
+
+.msa-finding-card .msa-status-pill.msa-status-medium {
+    background: var(--msa-medium-bg) !important;
+    border-color: var(--msa-medium-border) !important;
+    color: var(--msa-medium-text) !important;
+}
+
+.msa-finding-card .msa-status-pill.msa-status-high {
+    background: var(--msa-high-bg) !important;
+    border-color: var(--msa-high-border) !important;
+    color: var(--msa-high-text) !important;
+}
+
+.msa-finding-card .msa-status-pill.msa-status-info {
+    background: var(--msa-info-bg) !important;
+    border-color: var(--msa-info-border) !important;
+    color: var(--msa-info-text) !important;
+}
+
+
+/* ============================================================
+   FINDINGS CARD — TEXT COLOR FIX
+   The card uses msa-status-* for its severity accent, but the
+   status class also carries a text color intended for the pill.
+   Reset inherited card text to the normal application text color.
+   ============================================================ */
+
+.msa-finding-card.msa-status-low,
+.msa-finding-card.msa-status-medium,
+.msa-finding-card.msa-status-high,
+.msa-finding-card.msa-status-info {
+    color: var(--msa-text) !important;
+}
+
+/* Keep normal Finding content in the standard text color. */
+.msa-finding-card .msa-finding-title,
+.msa-finding-card .msa-finding-meta,
+.msa-finding-card .msa-finding-label,
+.msa-finding-card .msa-finding-rule-note,
+.msa-finding-card .msa-finding-explanation,
+.msa-finding-card .msa-finding-recommendation,
+.msa-finding-card .msa-finding-context,
+.msa-finding-card .msa-finding-action {
+    color: var(--msa-text) !important;
+}
+
+/* Keep signal chips readable. */
+.msa-finding-card .msa-keyword-chip {
+    color: var(--msa-info-text) !important;
+}
+
+/* Severity pill keeps its severity-specific text color. */
+.msa-finding-card .msa-status-pill.msa-status-low {
+    color: var(--msa-low-text) !important;
+}
+
+.msa-finding-card .msa-status-pill.msa-status-medium {
+    color: var(--msa-medium-text) !important;
+}
+
+.msa-finding-card .msa-status-pill.msa-status-high {
+    color: var(--msa-high-text) !important;
+}
+
+.msa-finding-card .msa-status-pill.msa-status-info {
+    color: var(--msa-info-text) !important;
+}
+
+/* AI explanation content should remain standard application text. */
+.msa-finding-card .msa-ai-explanation,
+.msa-finding-card .msa-ai-explanation * {
+    color: var(--msa-text) !important;
+}
+
+/* AI badge remains blue. */
+.msa-finding-card .msa-ai-badge {
+    color: var(--msa-info-text) !important;
+}
+
+/* ============================================================
+   FINDINGS CARD — TYPOGRAPHY / SPACING REFINEMENT V3
+   Keep the current layout and colors, but improve readability.
+   ============================================================ */
+
+.msa-finding-card {
+    padding: 1rem 1rem 1.05rem !important;
+}
+
+.msa-finding-title {
+    font-size: 0.98rem !important;
+    line-height: 1.45 !important;
+    margin-bottom: 0.12rem !important;
+}
+
+.msa-finding-meta {
+    margin-top: 0.42rem !important;
+    line-height: 1.6 !important;
+}
+
+.msa-finding-field {
+    margin-top: 0.95rem !important;
+}
+
+.msa-finding-label,
+.msa-evidence-label {
+    margin-bottom: 0.42rem !important;
+    line-height: 1.35 !important;
+}
+
+.msa-finding-text {
+    line-height: 1.72 !important;
+}
+
+.msa-finding-rule-note {
+    margin-top: 0.55rem !important;
+    line-height: 1.65 !important;
+}
+
+.msa-finding-action,
+.msa-finding-recommendation,
+.msa-finding-explanation,
+.msa-finding-context {
+    line-height: 1.72 !important;
+}
+
+.msa-finding-action-text {
+    line-height: 1.72 !important;
+}
+
+/* Give the AI-assisted block clear breathing room. */
+.msa-ai-finding-box {
+    margin-top: 1.1rem !important;
+    padding: 0.95rem !important;
+}
+
+.msa-ai-finding-header {
+    margin-bottom: 0.9rem !important;
+}
+
+.msa-ai-finding-label {
+    margin-bottom: 0.38rem !important;
+    line-height: 1.4 !important;
+}
+
+.msa-ai-finding-title {
+    line-height: 1.5 !important;
+}
+
+.msa-ai-finding-reason {
+    line-height: 1.72 !important;
+    margin-bottom: 0.85rem !important;
+}
+
+.msa-ai-finding-context,
+.msa-ai-finding-action {
+    margin-top: 0.7rem !important;
+    padding: 0.75rem 0.8rem !important;
+    line-height: 1.68 !important;
+}
+
+.msa-ai-finding-disclaimer {
+    margin-top: 0.82rem !important;
+    line-height: 1.55 !important;
+}
+
+/* Avoid labels and content visually running together. */
+.msa-finding-card .msa-keyword-chip {
+    margin-top: 0.08rem !important;
+    margin-bottom: 0.08rem !important;
+}
+
+.msa-finding-card .msa-status-pill {
+    line-height: 1.25 !important;
+}
+
+@media (max-width: 760px) {
+    .msa-finding-card {
+        padding: 0.9rem !important;
+    }
+
+    .msa-finding-field {
+        margin-top: 0.85rem !important;
+    }
+
+    .msa-ai-finding-box {
+        margin-top: 0.95rem !important;
+    }
+}
+
+
+/* ============================================================
+   RULE PROFILE MAPPING — 2026-09-29
+   ============================================================ */
+
+.msa-profile-map-card {
+    background: #ffffff;
+    border: 1px solid var(--msa-border);
+    border-radius: var(--msa-radius);
+    padding: 1rem 1.1rem;
+    margin: 0.75rem 0 1rem;
+    box-shadow: var(--msa-shadow);
+}
+
+.msa-profile-map-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.msa-profile-map-label {
     color: var(--msa-text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.055em;
+    text-transform: uppercase;
+    margin-bottom: 0.35rem;
+}
+
+.msa-profile-map-title {
+    color: var(--msa-text-strong);
+    font-size: 1.15rem;
+    font-weight: 800;
+}
+
+.msa-profile-map-description {
+    margin-top: 0.25rem;
+    color: var(--msa-text-muted);
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+.msa-profile-map-count {
+    min-width: 100px;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--msa-border-soft);
+    border-radius: 10px;
+    background: var(--msa-bg-soft);
+    text-align: center;
+}
+
+.msa-profile-map-count strong {
+    display: block;
+    color: var(--msa-text-strong);
+    font-size: 1.35rem;
+    line-height: 1.1;
+}
+
+.msa-profile-map-count span {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--msa-text-muted);
+    font-size: 0.68rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.msa-profile-rule-list {
+    margin-top: 0.9rem;
+    border-top: 1px solid var(--msa-border-soft);
+}
+
+.msa-profile-rule-row {
+    display: grid;
+    grid-template-columns: 105px minmax(150px, 1fr) minmax(220px, 1.2fr);
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.7rem 0;
+    border-bottom: 1px solid var(--msa-border-soft);
+}
+
+.msa-profile-rule-row:last-child {
+    border-bottom: 0;
+}
+
+.msa-profile-rule-id {
+    color: var(--msa-info-text);
+    font-family: Consolas, "SFMono-Regular", monospace;
+    font-size: 0.74rem;
+    font-weight: 700;
+}
+
+.msa-profile-rule-name {
+    color: var(--msa-text-strong);
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+.msa-profile-rule-meta {
+    color: var(--msa-text-muted);
+    font-size: 0.72rem;
+    line-height: 1.45;
+}
+
+.msa-profile-map-empty {
+    margin-top: 0.9rem;
+    padding: 0.75rem 0.8rem;
+    border: 1px dashed var(--msa-border);
+    border-radius: 10px;
+    background: var(--msa-bg-soft);
+    color: var(--msa-text-muted);
+    font-size: 0.8rem;
+    line-height: 1.5;
+}
+
+/* Current app.py uses these finding explanation class names. */
+.msa-finding-preview-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 0.8rem;
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--msa-border-soft);
+}
+
+.msa-ai-explanation-card {
+    margin-top: 1rem;
+    padding: 0.95rem;
+    border: 1px solid var(--msa-border-soft);
+    border-radius: 10px;
+    background: #f8fbff;
+}
+
+.msa-ai-explanation-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.8rem;
+}
+
+.msa-ai-explanation-title {
+    color: var(--msa-text-strong);
     font-size: 0.9rem;
+    font-weight: 750;
+    margin-bottom: 0.55rem;
+}
+
+.msa-ai-explanation-text,
+.msa-ai-explanation-context {
+    color: var(--msa-text);
+    line-height: 1.68;
+    overflow-wrap: anywhere;
+}
+
+.msa-ai-explanation-context {
+    margin-top: 0.7rem;
+    padding: 0.75rem 0.8rem;
+    border: 1px solid var(--msa-border-soft);
+    border-radius: 8px;
+    background: #ffffff;
+}
+
+.msa-ai-disclaimer {
+    margin-top: 0.82rem;
+    color: var(--msa-text-muted);
+    font-size: 0.68rem;
+    line-height: 1.55;
+}
+
+/* Current app.py cover-page class names. */
+.msa-report-status {
+    border: 1px solid var(--msa-border);
+    border-radius: 12px;
+    background: #ffffff;
+    padding: 0.9rem 1rem;
+    margin: 0.7rem 0 1rem;
+    color: var(--msa-text);
+    line-height: 1.5;
+}
+
+.msa-cover-preview {
+    margin-top: 1rem;
+    border: 1px solid #dbe3ea;
+    border-radius: 14px;
+    background: #ffffff;
+    padding: 20px;
+    box-shadow: 0 6px 18px rgba(15, 63, 104, .05);
+}
+
+.msa-cover-title {
+    margin-top: 5px;
+    color: #0f3f68;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.msa-cover-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 10px;
+    margin-top: 16px;
+}
+
+.msa-cover-meta-grid > div {
+    border: 1px solid #e5e7eb;
+    border-radius: 9px;
+    padding: 12px;
+    color: var(--msa-text);
+    line-height: 1.45;
+}
+
+.msa-cover-status {
+    margin-top: 14px;
+    padding: 14px 16px;
+    border-radius: 9px;
+    background: #f8fafc;
+    color: #0f3f68;
+    font-size: 12px;
+    line-height: 1.6;
+}
+
+.msa-confirm-card {
+    margin-top: 0.75rem;
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--msa-warning-border);
+    border-radius: 12px;
+    background: var(--msa-warning-bg);
+    color: var(--msa-text);
+    line-height: 1.5;
+}
+
+@media (max-width: 760px) {
+    .msa-profile-map-top {
+        flex-direction: column;
+    }
+
+    .msa-profile-map-count {
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .msa-profile-rule-row {
+        grid-template-columns: 1fr;
+        gap: 0.25rem;
+    }
+
+    .msa-finding-preview-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .msa-cover-meta-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+
+/* ------------------------------------------------------------
+   Finding AI explanation disclosure — compact demo UX
+   ------------------------------------------------------------ */
+.msa-ai-disclosure {
+    margin-top: 0.85rem;
+    border: 1px solid #dbe5ee;
+    border-radius: 10px;
+    background: #f5edf4;
+    overflow: hidden;
+}
+
+.msa-ai-disclosure > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.75rem;
+    padding: 0.75rem 0.85rem;
+    color: var(--msa-text-strong);
+    font-size: 0.78rem;
+    font-weight: 700;
+}
+
+.msa-ai-disclosure > summary::-webkit-details-marker {
+    display: none;
+}
+
+.msa-ai-disclosure > summary::after {
+    content: "⌄";
+    color: #5d7890;
+    font-size: 0.9rem;
+    transition: transform 0.15s ease;
+}
+
+.msa-ai-disclosure[open] > summary::after {
+    transform: rotate(180deg);
+}
+
+.msa-ai-disclosure-title {
+    color: var(--msa-text-strong);
+}
+
+.msa-ai-disclosure-meta {
+    margin-left: auto;
+    color: #5f7d96;
+    font-size: 0.64rem;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+}
+
+.msa-ai-disclosure .msa-ai-explanation-card {
+    margin: 0 0.65rem 0.65rem;
+    border: 1px solid #dce6ef;
+    background: #ffffff;
+}
+
+@media (max-width: 760px) {
+    .msa-ai-disclosure > summary {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+    .msa-ai-disclosure-meta {
+        margin-left: 0;
+    }
+}
+
+
+/* ============================================================
+   REVIEW RESULT — decision-oriented outcome card
+   ============================================================ */
+
+.msa-review-result-card {
+    border: 1px solid var(--msa-border);
+    border-radius: 16px;
+    background: #ffffff;
+    padding: 1.15rem 1.2rem 1.05rem;
+    margin: 0.75rem 0 1rem;
+    box-shadow: var(--msa-shadow);
+}
+
+.msa-review-result-main {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+}
+
+.msa-review-result-icon {
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.35rem;
+    font-weight: 900;
+}
+
+.msa-review-result-status {
+    font-size: 1.28rem;
+    line-height: 1.2;
+    font-weight: 850;
+    letter-spacing: .01em;
+}
+
+.msa-review-result-message {
+    margin-top: 0.3rem;
+    color: var(--msa-text);
+    line-height: 1.55;
+}
+
+.msa-review-result-metrics {
+    display: grid;
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.55rem;
+    margin-top: 1rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--msa-border-soft);
+}
+
+.msa-review-result-metrics > div {
+    border: 1px solid var(--msa-border-soft);
+    border-radius: 9px;
+    padding: 0.65rem 0.55rem;
+    text-align: center;
+    background: var(--msa-bg-soft);
+}
+
+.msa-review-result-metrics strong {
+    display: block;
+    color: var(--msa-text-strong);
+    font-size: 1.05rem;
+    line-height: 1.2;
+}
+
+.msa-review-result-metrics span {
+    display: block;
+    margin-top: 0.2rem;
+    color: var(--msa-text-muted);
+    font-size: 0.62rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+}
+
+.msa-review-result-action {
+    margin-top: 0.9rem;
+    padding: 0.72rem 0.8rem;
+    border-radius: 9px;
+    background: var(--msa-bg-soft);
+    color: var(--msa-text);
+    font-size: 0.82rem;
+    line-height: 1.5;
+}
+
+.msa-review-result-disclaimer {
+    margin-top: 0.7rem;
+    color: var(--msa-text-muted);
+    font-size: 0.68rem;
+    line-height: 1.5;
+}
+
+.msa-result-pass {
+    border-color: #b9dfc8;
+}
+.msa-result-pass .msa-review-result-icon {
+    background: #e9f7ee;
+    color: #237a45;
+}
+.msa-result-pass .msa-review-result-status {
+    color: #237a45;
+}
+
+.msa-result-review {
+    border-color: #f0c36b;
+}
+.msa-result-review .msa-review-result-icon {
+    background: #fff6df;
+    color: #a76500;
+}
+.msa-result-review .msa-review-result-status {
+    color: #a76500;
+}
+
+.msa-result-action {
+    border-color: #efb0b0;
+}
+.msa-result-action .msa-review-result-icon {
+    background: #fff0f0;
+    color: #b42318;
+}
+.msa-result-action .msa-review-result-status {
+    color: #b42318;
+}
+
+@media (max-width: 800px) {
+    .msa-review-result-metrics {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .msa-review-result-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+
+/* ============================================================
+   REVIEW SUMMARY SNAPSHOT + RESULT CTAs
+   ============================================================ */
+.msa-summary-snapshot {
+    padding: 1rem 1.1rem 1.05rem;
+}
+
+.msa-summary-note {
+    color: var(--msa-text);
+    font-size: 0.82rem;
+    line-height: 1.5;
+    margin-bottom: 0.85rem;
+}
+
+.msa-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.65rem;
+}
+
+.msa-summary-grid > div {
+    border: 1px solid var(--msa-border-soft);
+    border-radius: 9px;
+    background: #ffffff;
+    padding: 0.62rem 0.7rem;
+    min-width: 0;
+}
+
+.msa-summary-grid span {
+    display: block;
+    color: var(--msa-text-muted);
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: .04em;
+    text-transform: uppercase;
+    margin-bottom: 0.22rem;
+}
+
+.msa-summary-grid strong {
+    display: block;
+    color: var(--msa-text-strong);
+    font-size: 0.88rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.msa-review-cta-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.65rem;
+    margin: -0.35rem 0 1rem;
+}
+
+.msa-review-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 34px;
+    box-sizing: border-box;
+    padding: 0.48rem 0.82rem;
+    border-radius: 8px;
+    text-decoration: none !important;
+    font-size: 0.76rem;
+    font-weight: 750;
+    transition: transform .12s ease, box-shadow .12s ease;
+}
+
+.msa-review-cta:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--msa-shadow);
+}
+
+.msa-review-cta-primary {
+    background: #ff4b4b;
+    border: 1px solid #ff4b4b;
+    color: #ffffff !important;
+}
+
+.msa-review-cta-secondary {
+    background: #ffffff;
+    border: 1px solid var(--msa-border);
+    color: var(--msa-text-strong) !important;
+}
+
+#msa-findings,
+#msa-pre-review-report {
+    scroll-margin-top: 1.25rem;
+}
+
+@media (max-width: 800px) {
+    .msa-summary-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 520px) {
+    .msa-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .msa-review-cta-row {
+        flex-direction: column;
+    }
+
+    .msa-review-cta {
+        width: 100%;
+    }
+}
+
+
+/* ============================================================
+   GLASS MORPHISM UI POLISH v2 — 2026-10-01
+   Presentation layer only. No workflow or engine changes.
+   ============================================================ */
+:root {
+    --az-mulberry: #830051;
+    --az-dark-mulberry: #4D0030;
+    --az-magenta: #D0006F;
+    --az-gold: #F0AB00;
+    --az-navy: #003865;
+    --az-lime: #C4D600;
+    --az-bg: #FAFAFC;
+    --az-glass: rgba(255,255,255,.58);
+    --az-glass-strong: rgba(255,255,255,.76);
+    --az-glass-border: rgba(255,255,255,.82);
+    --az-shadow: 0 8px 28px rgba(77,0,48,.07), 0 1px 3px rgba(77,0,48,.035);
+    --az-shadow-lg: 0 18px 55px rgba(77,0,48,.12), 0 5px 16px rgba(77,0,48,.06);
+}
+
+.stApp {
+    background:
+        radial-gradient(circle at 8% 5%, rgba(208,0,111,.08), transparent 24%),
+        radial-gradient(circle at 92% 15%, rgba(134,211,223,.12), transparent 24%),
+        linear-gradient(180deg, #fbf9fc 0%, #f5f6fa 100%) !important;
+}
+
+[data-testid="stAppViewContainer"] > .main { background: transparent !important; }
+.block-container { padding-top: 1rem !important; padding-bottom: 3rem !important; }
+hr { border-top-color: rgba(77,0,48,.09) !important; margin: 1.25rem 0 !important; }
+
+/* ---------- Product top bar ---------- */
+.msa-topbar {
+    display:flex; align-items:center; justify-content:space-between; gap:1rem;
+    min-height:64px; padding:10px 16px;
+    background:rgba(255,255,255,.68);
+    border:1px solid rgba(255,255,255,.92);
+    border-radius:20px;
+    box-shadow:var(--az-shadow);
+    backdrop-filter:blur(22px) saturate(165%);
+    -webkit-backdrop-filter:blur(22px) saturate(165%);
+    margin-bottom:18px;
+}
+.msa-brand-lockup { display:flex; align-items:center; gap:11px; }
+.msa-brand-mark {
+    width:38px; height:38px; display:grid; place-items:center;
+    border-radius:12px; color:#fff; font-size:23px; font-weight:800;
+    background:linear-gradient(145deg,#9a0b67,#65003e);
+    box-shadow:0 8px 18px rgba(131,0,81,.25), inset 0 1px 0 rgba(255,255,255,.3);
+}
+.msa-brand-name { color:#1A1D1F; font-size:17px; font-weight:850; letter-spacing:-.02em; }
+.msa-brand-subtitle { color:#7a818a; font-size:11px; margin-top:2px; }
+.msa-topbar-meta { display:flex; align-items:center; gap:12px; color:#59616a; font-size:11px; font-weight:600; }
+.msa-avatar {
+    width:30px; height:30px; display:grid; place-items:center; border-radius:50%;
+    color:#fff; background:var(--az-mulberry); font-size:9px; font-weight:800;
+    box-shadow:0 6px 15px rgba(131,0,81,.22);
+}
+
+/* ---------- Hero ---------- */
+.msa-hero-glass {
+    position:relative; overflow:hidden; min-height:270px; margin-bottom:22px;
+    border-radius:30px;
+    background:
+        linear-gradient(90deg, rgba(77,0,48,.88) 0%, rgba(131,0,81,.48) 48%, rgba(208,0,111,.02) 100%),
+        url("https://image.mc.astrazeneca.com/lib/fe3211737364047a741073/m/1/2d037d87-6574-40d6-8e2d-1620c8276489.png") center/cover no-repeat;
+    box-shadow:var(--az-shadow-lg);
+    border:1px solid rgba(255,255,255,.5);
+}
+.msa-hero-glass::after { content:""; position:absolute; inset:0; background:linear-gradient(115deg,rgba(255,255,255,.08),transparent 45%); pointer-events:none; }
+.msa-hero-overlay { position:relative; z-index:1; padding:52px 58px 44px; color:#fff; max-width:720px; }
+.msa-hero-eyebrow {
+    display:inline-flex; align-items:center; gap:8px; padding:7px 13px;
+    border:1px solid rgba(255,255,255,.34); border-radius:999px;
+    background:rgba(255,255,255,.12); backdrop-filter:blur(12px);
+    font-size:10px; font-weight:800; letter-spacing:.09em;
+}
+.msa-hero-dot { width:8px; height:8px; border-radius:50%; background:var(--az-gold); box-shadow:0 0 0 4px rgba(240,171,0,.13); }
+.msa-hero-glass .msa-hero-title { margin-top:20px; color:#fff; font-size:clamp(2.4rem,5vw,4.25rem); font-weight:600; letter-spacing:-.065em; }
+.msa-hero-glass .msa-hero-subtitle { max-width:650px; color:rgba(255,255,255,.9); font-size:1rem; line-height:1.55; }
+.msa-hero-meta { display:flex; align-items:center; flex-wrap:wrap; gap:10px; margin-top:24px; color:rgba(255,255,255,.78); font-size:11px; }
+.msa-hero-meta span:first-child { color:#fff; }
+.msa-hero-meta i { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--az-lime); margin-right:6px; box-shadow:0 0 0 4px rgba(196,214,0,.12); }
+.msa-hero-meta b { color:rgba(255,255,255,.35); }
+
+/* ---------- Application navigation ---------- */
+.msa-application-label { color:#777f88; font-size:10px; font-weight:850; letter-spacing:.12em; margin:0 0 5px 4px; }
+[data-testid="stSegmentedControl"] {
+    width:max-content !important; max-width:100%;
+    background:rgba(255,255,255,.68) !important;
+    border:1px solid rgba(255,255,255,.92) !important;
+    border-radius:999px !important;
+    padding:4px !important;
+    box-shadow:var(--az-shadow) !important;
+    backdrop-filter:blur(18px) saturate(160%);
+}
+[data-testid="stSegmentedControl"] button {
+    border-radius:999px !important; border:0 !important; background:transparent !important;
+    color:#555c65 !important; font-weight:650 !important; min-height:34px !important;
+}
+[data-testid="stSegmentedControl"] button[aria-pressed="true"] {
+    background:linear-gradient(145deg,#92005b,#680041) !important;
+    color:#fff !important; box-shadow:0 7px 16px rgba(131,0,81,.22) !important;
+}
+
+/* ---------- Section rhythm ---------- */
+.msa-section-heading { margin-top:1.25rem !important; margin-bottom:.7rem !important; }
+.msa-section-title { font-size:1.35rem !important; letter-spacing:-.025em; }
+.msa-section-subtitle { font-size:.72rem !important; }
+.msa-section-icon { width:1.8rem !important; min-width:1.8rem !important; font-size:1.25rem !important; }
+
+/* ---------- Glass cards ---------- */
+.msa-summary-card, .msa-metric-card, .msa-review-result-card, .msa-finding-card,
+.msa-evidence-card, .msa-context-card, .msa-ai-card, .msa-slide-card,
+.msa-profile-map-card, .msa-cover-preview, .msa-report-status, .msa-confirm-card,
+.stContainer, [data-testid="stVerticalBlockBorderWrapper"] {
+    background:var(--az-glass-strong) !important;
+    border-color:var(--az-glass-border) !important;
+    box-shadow:var(--az-shadow) !important;
+    backdrop-filter:blur(20px) saturate(160%);
+    -webkit-backdrop-filter:blur(20px) saturate(160%);
+}
+
+.msa-summary-card, .msa-profile-map-card { border-radius:18px !important; }
+.msa-metric-card { border-radius:16px !important; }
+.msa-finding-card { border-radius:18px !important; }
+.msa-evidence-card { border-radius:18px !important; }
+.msa-context-card { border-radius:16px !important; }
+
+/* ---------- Profile selection ---------- */
+.msa-profile-selected {
+    margin:.55rem 0 .9rem; padding:10px 14px; border-radius:12px;
+    background:rgba(196,214,0,.11); border:1px solid rgba(196,214,0,.26);
+    color:#4f6a00; font-size:.75rem; backdrop-filter:blur(10px);
+}
+.msa-profile-selected-dot { display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--az-lime); margin-right:7px; }
+[data-testid="stSegmentedControl"]:has(button[aria-pressed="true"]) { box-shadow:0 7px 22px rgba(131,0,81,.10) !important; }
+
+/* ---------- Rule mapping ---------- */
+.msa-profile-map-card { padding:1.1rem 1.2rem !important; }
+.msa-profile-map-count { background:rgba(131,0,81,.06) !important; border-color:rgba(131,0,81,.18) !important; border-radius:12px !important; }
+.msa-profile-map-count strong { color:var(--az-mulberry) !important; }
+.msa-profile-rule-row { padding:.78rem .15rem !important; }
+.msa-profile-rule-id { color:var(--az-mulberry) !important; }
+.msa-profile-rule-row:hover { background:rgba(131,0,81,.025); }
+
+/* ---------- Upload dropzone ---------- */
+.msa-upload-shell {
+    padding:6px; border-radius:16px;
+    background:rgba(255,255,255,.42);
+    border:1px solid rgba(255,255,255,.78);
+    box-shadow:var(--az-shadow);
+    backdrop-filter:blur(14px);
+}
+[data-testid="stFileUploaderDropzone"] {
+    background:rgba(255,255,255,.42) !important;
+    border:1.5px dashed rgba(208,0,111,.34) !important;
+    border-radius:14px !important;
+    min-height:76px !important;
+}
+[data-testid="stFileUploaderDropzoneInstructions"] { color:#606872 !important; }
+[data-testid="stFileUploaderDropzone"] button {
+    border-radius:999px !important; border-color:rgba(131,0,81,.22) !important;
+    color:var(--az-mulberry) !important; background:rgba(255,255,255,.68) !important;
+}
+[data-testid="stFileUploaderFile"] { border-radius:12px !important; background:rgba(255,255,255,.72) !important; }
+
+/* ---------- Start review ---------- */
+button[kind="primary"] {
+    background:linear-gradient(145deg,#92005b,#690041) !important;
+    border:1px solid rgba(255,255,255,.42) !important;
+    color:#fff !important; border-radius:999px !important;
+    box-shadow:0 9px 20px rgba(131,0,81,.20), inset 0 1px 0 rgba(255,255,255,.22) !important;
+}
+button[kind="primary"]:hover:not(:disabled) { transform:translateY(-1px); filter:saturate(1.06); }
+button[kind="primary"]:disabled { background:rgba(226,229,235,.76) !important; color:#9ca3af !important; box-shadow:none !important; border-color:rgba(255,255,255,.8) !important; }
+
+/* ---------- Context analysis compact grid ---------- */
+.msa-context-grid-wrap { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; }
+.msa-context-grid-wrap .msa-context-card { margin:0 !important; }
+.msa-context-grid { grid-template-columns:110px 1fr !important; gap:.9rem !important; }
+
+/* ---------- AI hierarchy ---------- */
+.msa-ai-card { border-radius:18px !important; }
+.msa-ai-card::before { content:""; display:block; height:3px; margin:-1rem -1.05rem 1rem; border-radius:18px 18px 0 0; background:linear-gradient(90deg,var(--az-mulberry),var(--az-magenta),#86d3df); }
+.msa-ai-field { line-height:1.62; }
+
+/* ---------- Findings / Evidence ---------- */
+.msa-finding-card { overflow:hidden; }
+.msa-finding-card.msa-status-high { border-left:3px solid #c62828 !important; }
+.msa-finding-card.msa-status-medium { border-left:3px solid #e5a400 !important; }
+.msa-finding-card.msa-status-low { border-left:3px solid #55a86a !important; }
+.msa-evidence-card { border-left:3px solid var(--az-magenta) !important; }
+
+/* ---------- Pre-review final CTA ---------- */
+.msa-report-status { padding:1rem 1.15rem !important; border-radius:16px !important; }
+.msa-report-note { margin-top:.5rem; color:#7b828b; font-size:.72rem; }
+.msa-cover-preview { border-radius:18px !important; padding:1.2rem !important; }
+.msa-cover-title { color:var(--az-mulberry) !important; font-weight:850 !important; }
+
+/* ---------- Native controls ---------- */
+[data-baseweb="select"] > div, .stTextInput input, .stTextArea textarea {
+    background:rgba(255,255,255,.68) !important;
+    border-color:rgba(131,0,81,.13) !important;
+    border-radius:12px !important;
+}
+.stCheckbox label, .stRadio label, .stSelectbox label, .stTextInput label, .stTextArea label { color:#555d66 !important; font-size:.75rem !important; font-weight:650 !important; }
+
+/* ---------- Rule Management ---------- */
+[data-testid="stMetric"] {
+    background:rgba(255,255,255,.62) !important; border:1px solid rgba(255,255,255,.82) !important;
+    border-radius:18px !important; padding:1rem !important; box-shadow:var(--az-shadow) !important;
+    backdrop-filter:blur(18px);
+}
+[data-testid="stMetricLabel"] { color:#717983 !important; }
+[data-testid="stMetricValue"] { color:#1a1d1f !important; }
+[data-testid="stExpander"] {
+    background:rgba(255,255,255,.54) !important; border:1px solid rgba(255,255,255,.8) !important;
+    border-radius:16px !important; box-shadow:var(--az-shadow) !important;
+}
+
+/* ---------- Mobile ---------- */
+@media (max-width: 760px) {
+    .msa-topbar { min-height:58px; padding:8px 11px; border-radius:16px; }
+    .msa-topbar-meta { font-size:0; }
+    .msa-topbar-meta .msa-avatar { font-size:8px; }
+    .msa-hero-glass { min-height:300px; border-radius:22px; }
+    .msa-hero-overlay { padding:38px 26px 30px; }
+    .msa-hero-glass .msa-hero-title { font-size:2.35rem; }
+    .msa-hero-glass .msa-hero-subtitle { font-size:.88rem; }
+    .msa-context-grid-wrap { grid-template-columns:1fr; }
+    .msa-profile-rule-row { grid-template-columns:90px 1fr !important; }
+    .msa-profile-rule-meta { grid-column:2; }
+    [data-testid="stSegmentedControl"] { width:100% !important; }
+    [data-testid="stSegmentedControl"] button { flex:1 !important; }
+}
+
+
+/* ============================================================
+   GLASS MORPHISM UI POLISH v3 — 2026-10-06
+   Visual hierarchy only. Core workflow/engine unchanged.
+   ============================================================ */
+
+/* Primary actions use Mulberry; risk colors remain reserved for results. */
+div.stButton > button[kind="primary"],
+button[kind="primary"] {
+    background:linear-gradient(145deg,#92005b 0%,#690041 100%) !important;
+    border:1px solid rgba(255,255,255,.45) !important;
+    color:#fff !important;
+    border-radius:999px !important;
+    box-shadow:0 9px 20px rgba(131,0,81,.20), inset 0 1px 0 rgba(255,255,255,.24) !important;
+}
+div.stButton > button[kind="primary"]:hover:not(:disabled),
+button[kind="primary"]:hover:not(:disabled) {
+    transform:translateY(-1px);
+    filter:saturate(1.07) brightness(1.03);
+}
+div.stButton > button[kind="primary"]:disabled,
+button[kind="primary"]:disabled {
+    background:rgba(226,229,235,.78) !important;
+    color:#9ca3af !important;
+    box-shadow:none !important;
+    border-color:rgba(255,255,255,.9) !important;
+}
+
+/* Review Profile: stronger glass-pill hierarchy without changing the native control. */
+[data-testid="stSegmentedControl"] {
+    padding:5px !important;
+    background:rgba(255,255,255,.72) !important;
+    border:1px solid rgba(255,255,255,.95) !important;
+    box-shadow:0 8px 22px rgba(72,38,65,.08) !important;
+}
+[data-testid="stSegmentedControl"] button {
+    min-height:38px !important;
+    padding:0 18px !important;
+    font-size:.78rem !important;
+}
+
+/* Rule mapping: reduce visual weight and make each rule feel like configuration. */
+.msa-profile-map-card { padding:1rem 1.15rem !important; }
+.msa-profile-rule-list { margin-top:.35rem !important; }
+.msa-profile-rule-row {
+    grid-template-columns:88px minmax(170px,1fr) minmax(220px,1.3fr) !important;
+    min-height:44px !important;
+    padding:.55rem .15rem !important;
+    border-bottom:1px solid rgba(131,0,81,.08) !important;
+}
+.msa-profile-rule-row:last-child { border-bottom:0 !important; }
+.msa-profile-rule-name { font-weight:750 !important; }
+.msa-profile-rule-meta { color:#7a818a !important; font-size:.68rem !important; }
+
+/* AI section becomes the intelligence spotlight. */
+.msa-ai-spotlight {
+    margin-top:1rem;
+    padding:1rem 1.05rem;
+    border-radius:15px;
+    background:linear-gradient(135deg,rgba(131,0,81,.055),rgba(208,0,111,.035),rgba(134,211,223,.055));
+    border:1px solid rgba(131,0,81,.12);
+}
+.msa-ai-spotlight-kicker {
+    color:var(--az-mulberry);
+    font-size:.62rem;
+    font-weight:850;
+    letter-spacing:.08em;
+    margin-bottom:.35rem;
+}
+.msa-ai-spotlight-title {
+    color:var(--msa-text-strong);
+    font-weight:800;
+    font-size:.9rem;
+    margin-bottom:.45rem;
+}
+.msa-ai-spotlight-text {
+    line-height:1.58;
+    color:#27313a;
+}
+.msa-ai-spotlight-grid {
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+    margin-top:.85rem;
+}
+.msa-ai-spotlight-grid > div {
+    padding:.7rem .75rem;
+    border-radius:11px;
+    background:rgba(255,255,255,.62);
+    border:1px solid rgba(255,255,255,.85);
+}
+
+/* Extracted content is secondary information. */
+[data-testid="stExpander"] {
+    margin-top:.25rem !important;
+}
+.msa-extracted-card { margin-bottom:.7rem !important; }
+
+/* Final output should read as a deliverable, not another analysis card. */
+.msa-report-status {
+    border-left:3px solid var(--az-mulberry) !important;
+}
+.msa-cover-preview {
+    box-shadow:0 14px 34px rgba(72,38,65,.10) !important;
+}
+
+@media (max-width: 760px) {
+    .msa-ai-spotlight-grid { grid-template-columns:1fr; }
+    .msa-profile-rule-row { grid-template-columns:80px 1fr !important; }
+    .msa-profile-rule-meta { grid-column:2 !important; }
+}
+
+/* ---------- Application navigation v4: directly under hero ---------- */
+.msa-application-label {
+    margin: 2px 0 7px 4px !important;
+    color: #777f88 !important;
+    font-size: 10px !important;
+    font-weight: 850 !important;
+    letter-spacing: .12em !important;
+    text-transform: uppercase !important;
+}
+
+/* Hide Streamlit's native segmented-control label; keep our premium APPLICATION label. */
+[data-testid="stSegmentedControl"] > label,
+[data-testid="stSegmentedControl"] label {
+    display: none !important;
+}
+
+[data-testid="stSegmentedControl"] {
+    width: max-content !important;
+    max-width: 100% !important;
+    margin: 0 0 24px 0 !important;
+    padding: 4px !important;
+    border-radius: 999px !important;
+    background: rgba(255,255,255,.70) !important;
+    border: 1px solid rgba(255,255,255,.94) !important;
+    box-shadow: 0 8px 26px rgba(77,0,48,.08), inset 0 1px 0 rgba(255,255,255,.82) !important;
+    backdrop-filter: blur(22px) saturate(170%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(170%) !important;
+}
+
+[data-testid="stSegmentedControl"] button {
+    min-height: 38px !important;
+    padding: 0 18px !important;
+    border-radius: 999px !important;
+    border: 0 !important;
+    background: transparent !important;
+    color: #555c65 !important;
+    font-size: 14px !important;
+    font-weight: 700 !important;
+    letter-spacing: -.01em !important;
+    transition: all .18s ease !important;
+}
+
+[data-testid="stSegmentedControl"] button:hover {
+    color: #830051 !important;
+    background: rgba(131,0,81,.06) !important;
+}
+
+[data-testid="stSegmentedControl"] button[aria-pressed="true"] {
+    background: linear-gradient(145deg, #8f0059 0%, #690043 100%) !important;
+    color: #fff !important;
+    box-shadow: 0 7px 16px rgba(131,0,81,.24), inset 0 1px 0 rgba(255,255,255,.20) !important;
+}
+
+[data-testid="stSegmentedControl"] button[aria-pressed="true"]:hover {
+    color: #fff !important;
+    background: linear-gradient(145deg, #980061 0%, #700047 100%) !important;
+}
+
+@media (max-width: 640px) {
+    [data-testid="stSegmentedControl"] {
+        width: 100% !important;
+    }
+    [data-testid="stSegmentedControl"] button {
+        flex: 1 1 0 !important;
+        padding: 0 10px !important;
+        font-size: 12px !important;
+    }
+}
+
+/* ============================================================
+   MSA UI v5 — Application switcher + post-review navigator
+   ============================================================ */
+.msa-application-label-inline {
+    display:flex !important;
+    align-items:center !important;
+    min-height:42px !important;
+    margin:0 !important;
+    color:#6f7580 !important;
+    font-size:18px !important;
+    font-weight:850 !important;
+    letter-spacing:.12em !important;
+}
+.msa-application-label-inline + * { margin-top:0 !important; }
+
+/* Raised-button result navigator: soft glass rail with a lifted active tab. */
+.st-key-results-nav-shell {
+    width:100% !important;
+    margin:14px 0 26px !important;
+    padding:6px !important;
+    border-radius:22px !important;
+    background:rgba(248,249,252,.72) !important;
+    border:1px solid rgba(255,255,255,.96) !important;
+    box-shadow:0 10px 28px rgba(77,0,48,.07), inset 0 1px 0 rgba(255,255,255,.96) !important;
+    backdrop-filter:blur(22px) saturate(150%) !important;
+}
+.st-key-results-nav-shell [data-testid="stHorizontalBlock"] {
+    width:100% !important;
+    gap:6px !important;
+}
+.st-key-results-nav-shell [data-testid="column"] {
+    min-width:0 !important;
+}
+.st-key-results-nav-shell .stButton {
+    width:100% !important;
+}
+.st-key-results-nav-shell .stButton > button {
+    width:100% !important;
+    min-height:52px !important;
+    border-radius:16px !important;
+    border:1px solid transparent !important;
+    background:transparent !important;
+    color:#555b65 !important;
+    font-size:15px !important;
+    font-weight:650 !important;
+    padding:0 16px !important;
+    box-shadow:none !important;
+    transition:all .18s ease !important;
+}
+.st-key-results-nav-shell .stButton > button:hover {
+    background:rgba(255,255,255,.72) !important;
+    color:#830051 !important;
+    border-color:rgba(255,255,255,.9) !important;
+}
+.st-key-results-nav-shell .stButton > button[kind="primary"] {
+    background:#830051 !important;
+    color:#ffffff !important;
+    border:1px solid #830051 !important;
+    box-shadow:0 8px 20px rgba(131,0,81,.22), 0 2px 6px rgba(131,0,81,.12) !important;
+}
+.st-key-results-nav-shell .stButton > button[kind="primary"]:hover {
+    background:#830051 !important;
+    color:#ffffff !important;
+    transform:translateY(-1px) !important;
+}
+.st-key-results-nav-shell .stButton > button[kind="secondary"]:active,
+.st-key-results-nav-shell .stButton > button[kind="primary"]:active {
+    transform:translateY(0) !important;
+}
+
+@media (max-width: 760px) {
+    .msa-application-label-inline { font-size:11px !important; }
+    .st-key-results-nav-shell { padding:4px !important; border-radius:18px !important; }
+    .st-key-results-nav-shell [data-testid="stHorizontalBlock"] { gap:3px !important; }
+    .st-key-results-nav-shell .stButton > button {
+        min-height:42px !important;
+        padding:0 7px !important;
+        font-size:11px !important;
+        border-radius:13px !important;
+    }
+}
+
+
+/* ============================================================
+   MSA UI v6 — compact material uploader
+   ============================================================ */
+.msa-upload-shell [data-testid="stFileUploader"] {
+    margin:0 !important;
+}
+.msa-upload-shell [data-testid="stFileUploaderDropzone"] {
+    padding:10px 14px !important;
+}
+.msa-upload-shell [data-testid="stFileUploaderDropzoneInstructions"] {
+    padding:0 !important;
+}
+.msa-upload-shell [data-testid="stFileUploaderDropzoneInstructions"] > div {
+    gap:4px !important;
+}
+.msa-upload-shell [data-testid="stFileUploaderFile"] {
+    margin-top:4px !important;
+    padding:5px 8px !important;
+}
+
+
+/* ============================================================
+   MSA UI v8 — Upload Material reference card
+   ============================================================ */
+.st-key-upload-material-card {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 0 1.2rem 0 !important;
+    padding: 1.35rem 1.35rem 1.45rem 1.35rem !important;
+    border-radius: 22px !important;
+    background: rgba(255,255,255,.82) !important;
+    border: 1px solid rgba(255,255,255,.96) !important;
+    box-shadow: 0 12px 34px rgba(61,0,38,.08), inset 0 1px 0 rgba(255,255,255,.98) !important;
+    backdrop-filter: blur(22px) saturate(155%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(155%) !important;
+}
+
+.st-key-upload-material-card .msa-upload-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin: 0 0 1.15rem 0;
+}
+
+.st-key-upload-material-card .msa-upload-icon {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    background: rgba(239,180,62,.14);
+    color: #b36a00;
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.st-key-upload-material-card .msa-upload-title {
+    color: #24262b;
+    font-size: 22px;
+    line-height: 1.15;
+    font-weight: 750;
+    letter-spacing: -.02em;
+}
+
+.st-key-upload-material-card .msa-upload-subtitle {
+    margin-top: 4px;
+    color: #5c626c;
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.st-key-upload-material-card .msa-upload-shell [data-testid="stFileUploader"] {
+    margin: 0 !important;
+}
+
+.st-key-upload-material-card .msa-upload-shell [data-testid="stFileUploaderDropzone"] {
+    min-height: 72px !important;
+    padding: 12px 16px !important;
+    border-radius: 16px !important;
+    background: rgba(255,255,255,.55) !important;
+    border: 1px dashed rgba(131,0,81,.24) !important;
+}
+
+.st-key-upload-material-card .msa-upload-shell [data-testid="stFileUploaderDropzoneInstructions"] {
+    padding: 0 !important;
+}
+
+.st-key-upload-material-card .msa-upload-shell [data-testid="stFileUploaderDropzoneInstructions"] > div {
+    gap: 4px !important;
+}
+
+.st-key-upload-material-card .msa-upload-shell [data-testid="stFileUploaderFile"] {
+    margin-top: 4px !important;
+    padding: 7px 10px !important;
+    border-radius: 12px !important;
+}
+
+.st-key-upload-material-card .msa-upload-file-summary {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: .25rem;
+    padding: .8rem 1rem;
+    border-radius: 17px;
+    background: rgba(255,255,255,.88);
+    border: 1px solid rgba(131,0,81,.08);
+    box-shadow: 0 5px 16px rgba(40,20,35,.05);
+}
+
+.st-key-upload-material-card .msa-upload-file-icon {
+    width: 44px;
+    height: 44px;
+    flex: 0 0 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 13px;
+    background: rgba(131,0,81,.07);
+    border: 1px solid rgba(131,0,81,.16);
+    color: #830051;
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.st-key-upload-material-card .msa-upload-file-name {
+    color: #25272c;
+    font-size: 15px;
+    font-weight: 700;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+}
+
+.st-key-upload-material-card .msa-upload-file-meta {
+    margin-top: 2px;
+    color: #777d86;
+    font-size: 12px;
+}
+
+.st-key-upload-material-card .msa-upload-status {
+    display: flex;
+    align-items: flex-start;
+    gap: 13px;
+    width: 100%;
+    box-sizing: border-box;
+    margin-top: 1rem;
+    padding: .9rem 1rem;
+    border-radius: 17px;
+}
+
+.st-key-upload-material-card .msa-upload-status-info {
+    background: rgba(213,241,248,.62);
+    border: 1px solid rgba(84,190,216,.25);
+    color: #0c5871;
+}
+
+.st-key-upload-material-card .msa-upload-status-icon {
+    width: 28px;
+    height: 28px;
+    flex: 0 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #8dd5e4;
+    color: #12536a;
+    font-weight: 800;
+}
+
+.st-key-upload-material-card .msa-upload-status-label {
+    font-size: 16px;
+    line-height: 1.25;
+    font-weight: 750;
+}
+
+.st-key-upload-material-card .msa-upload-status-text {
+    margin-top: 3px;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.st-key-upload-material-card .msa-upload-empty-state {
+    display: flex;
+    align-items: center;
+    gap: 13px;
+    padding: .85rem 1rem;
+    margin-top: .0.2rem;
+    margin-bottom: 18px !important;
+    border-radius: 16px;
+    background: rgba(245,248,252,.78);
+    border: 1px solid rgba(120,130,145,.12);
+}
+
+.st-key-upload-material-card .msa-upload-empty-icon {
+    width: 40px;
+    height: 40px;
+    flex: 0 0 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    background: rgba(131,0,81,.07);
+    color: #830051;
+    font-size: 20px;
+    font-weight: 800;
+}
+
+.st-key-upload-material-card .msa-upload-empty-title {
+    font-size: 14px;
+    font-weight: 700;
+    color: #33363c;
+}
+
+.st-key-upload-material-card .msa-upload-empty-text {
+    margin-top: 2px;
+    color: #747a84;
+    font-size: 12px;
+}
+
+@media (max-width: 760px) {
+    .st-key-upload-material-card {
+        padding: 1rem !important;
+    }
+    .st-key-upload-material-card .msa-upload-heading {
+        gap: 10px;
+    }
+    .st-key-upload-material-card .msa-upload-icon {
+        width: 44px;
+        height: 44px;
+        flex-basis: 44px;
+        border-radius: 13px;
+        font-size: 23px;
+    }
+    .st-key-upload-material-card .msa-upload-title {
+        font-size: 19px;
+    }
+    .st-key-upload-material-card .msa-upload-subtitle {
+        font-size: 13px;
+    }
+}
+
+/* ============================================================
+   MSA UI v7 — Application switcher reference-match override
+   Label sits beside one continuous glass pill.
+   ============================================================ */
+.st-key-application-nav-shell {
+    margin: 0 0 10px !important;
+    padding: 0 !important;
+}
+
+.st-key-application-nav-shell > div:first-child {
+    align-items: center !important;
+}
+
+.st-key-application-nav-shell [data-testid="stSegmentedControl"] {
+    width: max-content !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 4px !important;
+    border-radius: 999px !important;
+    background: rgba(255,255,255,.72) !important;
+    border: 1px solid rgba(255,255,255,.96) !important;
+    box-shadow:
+        0 8px 24px rgba(77,0,48,.10),
+        inset 0 1px 0 rgba(255,255,255,.92) !important;
+    backdrop-filter: blur(24px) saturate(175%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(175%) !important;
+}
+
+.st-key-application-nav-shell [data-testid="stSegmentedControl"] > div {
+    width: auto !important;
+    gap: 2px !important;
+}
+
+.st-key-application-nav-shell [data-testid="stSegmentedControl"] button {
+    min-height: 42px !important;
+    height: 42px !important;
+    padding: 0 20px !important;
+    border: 0 !important;
+    border-radius: 999px !important;
+    background: transparent !important;
+    color: #555b65 !important;
+    font-size: 16px !important;
+    font-weight: 650 !important;
+    letter-spacing: -.01em !important;
+    box-shadow: none !important;
+    transition: all .18s ease !important;
+}
+
+.st-key-application-nav-shell [data-testid="stSegmentedControl"] button:hover {
+    background: rgba(131,0,81,.055) !important;
+    color: #830051 !important;
+}
+
+.st-key-application-nav-shell [data-testid="stSegmentedControl"] button[aria-pressed="true"] {
+    background: linear-gradient(145deg, #92005b 0%, #680041 100%) !important;
+    color: #fff !important;
+    box-shadow:
+        0 7px 16px rgba(131,0,81,.23),
+        inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+
+.st-key-application-nav-shell [data-testid="stSegmentedControl"] button[aria-pressed="true"]:hover {
+    background: linear-gradient(145deg, #980061 0%, #700047 100%) !important;
+    color: #fff !important;
+}
+
+/* Keep the native segmented-control label invisible. */
+.st-key-application-nav-shell [data-testid="stSegmentedControl"] > label,
+.st-key-application-nav-shell [data-testid="stSegmentedControl"] label {
+    display: none !important;
+}
+
+@media (max-width: 760px) {
+    .st-key-application-nav-shell {
+        margin-bottom: 20px !important;
+    }
+    .st-key-application-nav-shell [data-testid="stSegmentedControl"] {
+        width: 100% !important;
+    }
+    .st-key-application-nav-shell [data-testid="stSegmentedControl"] button {
+        flex: 1 1 0 !important;
+        min-height: 40px !important;
+        height: 40px !important;
+        padding: 0 10px !important;
+        font-size: 13px !important;
+    }
+}
+
+/* ============================================================
+   MSA UI v8 — Application navigation: deterministic glass buttons
+   Replaces the native segmented-control styling with a stable
+   button group matching the supplied reference image.
+   ============================================================ */
+.st-key-application-nav-shell {
+    margin: 0 0 26px !important;
+    padding: 0 !important;
+}
+
+.st-key-application-nav-shell > div:first-child {
+    align-items: center !important;
+}
+
+.st-key-application-nav-shell .st-key-application-pill {
+    display: block !important;
+    width: max-content !important;
+    min-width: 360px !important;
+    max-width: 100% !important;
+    padding: 4px !important;
+    border-radius: 999px !important;
+    background: rgba(255,255,255,.78) !important;
+    border: 1px solid rgba(255,255,255,.98) !important;
+    box-shadow:
+        0 8px 24px rgba(77,0,48,.10),
+        0 1px 0 rgba(255,255,255,.95) inset !important;
+    backdrop-filter: blur(24px) saturate(175%) !important;
+    -webkit-backdrop-filter: blur(24px) saturate(175%) !important;
+}
+
+.st-key-application-nav-shell .st-key-application-pill > div {
+    gap: 4px !important;
+}
+
+.st-key-application-nav-shell .st-key-application-pill .stButton {
+    margin: 0 !important;
+}
+
+.st-key-application-nav-shell .st-key-application-pill .stButton > button {
+    min-height: 42px !important;
+    height: 42px !important;
+    border-radius: 999px !important;
+    padding: 0 18px !important;
+    font-size: 12px !important;
+    font-weight: 650 !important;
+    letter-spacing: -.01em !important;
+    transition: all .18s ease !important;
+    box-shadow: none !important;
+}
+
+/* Active = Mulberry */
+.st-key-application-nav-shell .st-key-application-pill .stButton > button[kind="primary"] {
+    background: linear-gradient(145deg, #92005b 0%, #680041 100%) !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    color: #fff !important;
+    box-shadow:
+        0 7px 16px rgba(131,0,81,.23),
+        inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+
+.st-key-application-nav-shell .st-key-application-pill .stButton > button[kind="primary"]:hover {
+    background: linear-gradient(145deg, #980061 0%, #700047 100%) !important;
+    color: #fff !important;
+}
+
+/* Inactive = clean white / translucent */
+.st-key-application-nav-shell .st-key-application-pill .stButton > button[kind="secondary"] {
+    background: transparent !important;
+    border: 0 !important;
+    color: #555b65 !important;
+}
+
+.st-key-application-nav-shell .st-key-application-pill .stButton > button[kind="secondary"]:hover {
+    background: rgba(131,0,81,.055) !important;
+    color: #830051 !important;
+}
+
+@media (max-width: 760px) {
+    .st-key-application-nav-shell .st-key-application-pill {
+        width: 100% !important;
+        min-width: 0 !important;
+    }
+    .st-key-application-nav-shell .st-key-application-pill .stButton > button {
+        min-height: 40px !important;
+        height: 40px !important;
+        padding: 0 10px !important;
+        font-size: 13px !important;
+    }
+}
+
+
+/* ============================================================
+   REVIEW PROFILE — Glass / Reference Match
+   Scoped only to the Review Profile selector.
+   ============================================================ */
+.msa-review-profile-card {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 0 0.65rem 0;
+    padding: 1.15rem 1.35rem 0.55rem 1.35rem;
+    border-radius: 20px 20px 0 0;
+    background: rgba(255,255,255,.78);
+    border: 1px solid rgba(255,255,255,.92);
+    box-shadow: 0 10px 30px rgba(61,0,38,.08), inset 0 1px 0 rgba(255,255,255,.96);
+    backdrop-filter: blur(20px) saturate(150%);
+    -webkit-backdrop-filter: blur(20px) saturate(150%);
+}
+
+.msa-review-profile-heading {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.msa-review-profile-icon {
+    width: 52px;
+    height: 52px;
+    flex: 0 0 52px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 15px;
+    background: rgba(131,0,81,.08);
+    color: #830051;
+    font-size: 25px;
+    font-weight: 700;
+}
+
+.msa-review-profile-title {
+    color: #24262b;
+    font-size: 22px;
+    line-height: 1.15;
+    font-weight: 750;
+    letter-spacing: -.02em;
+}
+
+.msa-review-profile-subtitle {
+    margin-top: 4px;
+    color: #5c626c;
+    font-size: 16px;
+    line-height: 1.4;
+}
+
+.st-key-review-profile-choices {
+    margin: 0 0 .8rem 0 !important;
+    padding: 0 1.35rem 1rem 1.35rem !important;
+    background: rgba(255,255,255,.78) !important;
+    border: 1px solid rgba(255,255,255,.92) !important;
+    border-top: 0 !important;
+    border-radius: 0 0 20px 20px !important;
+    box-shadow: 0 10px 30px rgba(61,0,38,.08), inset 0 -1px 0 rgba(255,255,255,.96) !important;
+    backdrop-filter: blur(20px) saturate(150%) !important;
+    -webkit-backdrop-filter: blur(20px) saturate(150%) !important;
+}
+
+.st-key-review-profile-choices [data-testid="stHorizontalBlock"] {
+    align-items: center !important;
+    gap: 12px !important;
+}
+
+.st-key-review-profile-choices .stButton {
+    margin: 0 !important;
+}
+
+.st-key-review-profile-choices .stButton > button {
+    min-height: 48px !important;
+    height: 48px !important;
+    padding: 0 24px !important;
+    border-radius: 999px !important;
+    font-size: 17px !important;
+    font-weight: 650 !important;
+    letter-spacing: -.01em !important;
+    transition: all .18s ease !important;
+    box-shadow: none !important;
+}
+
+/* Selected profile = Mulberry pill */
+.st-key-review-profile-choices .stButton > button[kind="primary"] {
+    background: linear-gradient(145deg, #92005b 0%, #680041 100%) !important;
+    border: 1px solid rgba(255,255,255,.12) !important;
+    color: #fff !important;
+    box-shadow: 0 8px 18px rgba(131,0,81,.22), inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+
+.st-key-review-profile-choices .stButton > button[kind="primary"]:hover {
+    background: linear-gradient(145deg, #980061 0%, #700047 100%) !important;
+    color: #fff !important;
+    transform: translateY(-1px);
+}
+
+/* Unselected profile = white glass / outline */
+.st-key-review-profile-choices .stButton > button[kind="secondary"] {
+    background: rgba(255,255,255,.72) !important;
+    border: 1px solid rgba(120,125,135,.18) !important;
+    color: #555b65 !important;
+    box-shadow: 0 2px 8px rgba(30,30,30,.035) !important;
+}
+
+.st-key-review-profile-choices .stButton > button[kind="secondary"]:hover {
+    background: rgba(255,255,255,.95) !important;
+    border-color: rgba(131,0,81,.25) !important;
+    color: #830051 !important;
+}
+
+.msa-profile-confirmed {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 0 1.15rem 0;
+    padding: 1rem 1.25rem;
+    border-radius: 18px;
+    background: rgba(238,247,168,.45);
+    border: 1px solid rgba(205,218,67,.55);
+    color: #566500;
+    transform: translateY(-10px) !important;
+}
+
+.msa-profile-confirmed-icon {
+    width: 30px;
+    height: 30px;
+    flex: 0 0 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #c4d600;
+    color: #263000;
+    font-size: 17px;
+    font-weight: 800;
+}
+
+.msa-profile-confirmed-title {
+    font-size: 16px;
+    line-height: 1.2;
+    font-weight: 750;
+}
+
+.msa-profile-confirmed-text {
+    margin-top: 3px;
+    font-size: 15px;
+    line-height: 1.4;
+}
+
+.msa-profile-required {
+    width: 100%;
+    box-sizing: border-box;
+    margin: 0 0 1.15rem 0;
+    padding: 1rem 1.25rem;
+    border-radius: 14px;
+    background: rgba(255,250,215,.82);
+    border: 1px solid rgba(224,211,117,.5);
+    color: #806b00;
+    font-size: 14px;
+    transform: translateY(-12px) !important;
+}
+
+@media (max-width: 760px) {
+    .msa-review-profile-card {
+        padding: 1rem 1rem .5rem 1rem;
+    }
+    .msa-review-profile-heading {
+        gap: 10px;
+    }
+    .msa-review-profile-icon {
+        width: 44px;
+        height: 44px;
+        flex-basis: 44px;
+        border-radius: 13px;
+        font-size: 21px;
+    }
+    .msa-review-profile-title {
+        font-size: 19px;
+    }
+    .msa-review-profile-subtitle {
+        font-size: 13px;
+    }
+    .st-key-review-profile-choices {
+        padding: 0 1rem 1rem 1rem !important;
+    }
+    .st-key-review-profile-choices .stButton > button {
+        min-height: 44px !important;
+        height: 44px !important;
+        padding: 0 14px !important;
+        font-size: 14px !important;
+    }
+}
+
+/* ============================================================
+   REVIEW PROFILE V2 — unified card + corrected button position
+   ============================================================ */
+.st-key-review-profile-shell {
+    width: 100% !important;
+    box-sizing: border-box !important;
+    margin: 0 0 1.15rem 0 !important;
+    padding: 1.35rem 1.35rem 1.85rem 1.35rem !important;
+    border-radius: 20px !important;
+    background: rgba(255,255,255,.80) !important;
+    border: 1px solid rgba(255,255,255,.95) !important;
+    box-shadow: 0 12px 34px rgba(61,0,38,.09), inset 0 1px 0 rgba(255,255,255,.98) !important;
+    backdrop-filter: blur(22px) saturate(155%) !important;
+    -webkit-backdrop-filter: blur(22px) saturate(155%) !important;
+}
+
+.st-key-review-profile-shell .msa-review-profile-heading {
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+/* Remove the old split-card treatment. */
+.st-key-review-profile-shell .st-key-review-profile-choices {
+    margin: 1.05rem 0 1.05rem 0 !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+.st-key-review-profile-shell .st-key-review-profile-choices [data-testid="stHorizontalBlock"] {
+    align-items: center !important;
+    gap: 12px !important;
+    margin: 0 !important;
+}
+
+.st-key-review-profile-shell .st-key-review-profile-choices .stButton {
+    margin: 0 !important;
+    width: max-content !important;
+}
+
+.st-key-review-profile-shell .st-key-review-profile-choices .stButton > button {
+    min-height: 46px !important;
+    height: 46px !important;
+    width: auto !important;
+    padding: 0 26px !important;
+    min-width: 142px !important;
+    border-radius: 999px !important;
+    font-size: 16px !important;
+    font-weight: 700 !important;
+    white-space: nowrap !important;
+}
+
+/* Keep selected state Mulberry. */
+.st-key-review-profile-shell .st-key-review-profile-choices .stButton > button[kind="primary"] {
+    background: linear-gradient(145deg, #92005b 0%, #680041 100%) !important;
+    border: 1px solid rgba(255,255,255,.16) !important;
+    color: #fff !important;
+    box-shadow: 0 8px 18px rgba(131,0,81,.24), inset 0 1px 0 rgba(255,255,255,.18) !important;
+}
+
+/* Unselected = clean white glass pill. */
+.st-key-review-profile-shell .st-key-review-profile-choices .stButton > button[kind="secondary"] {
+    min-width: 158px !important;
+    background: rgba(255,255,255,.82) !important;
+    border: 1px solid rgba(100,105,115,.16) !important;
+    color: #555b65 !important;
+    box-shadow: 0 2px 8px rgba(30,30,30,.035) !important;
+}
+
+.st-key-review-profile-shell .msa-profile-confirmed,
+.st-key-review-profile-shell .msa-profile-required {
+    margin: 0 !important;
+}
+
+.st-key-review-profile-shell .msa-profile-confirmed {
+    padding: 1rem 1.15rem !important;
+    border-radius: 18px !important;
+}
+
+.st-key-review-profile-shell .msa-profile-required {
+    padding: 1rem 1.15rem !important;
+    border-radius: 14px !important;
+}
+
+@media (max-width: 760px) {
+    .st-key-review-profile-shell {
+        padding: 1rem !important;
+    }
+
+    .st-key-review-profile-shell .st-key-review-profile-choices [data-testid="stHorizontalBlock"] {
+        gap: 8px !important;
+    }
+
+    .st-key-review-profile-shell .st-key-review-profile-choices .stButton > button {
+        min-height: 42px !important;
+        height: 42px !important;
+        padding: 0 15px !important;
+        min-width: 0 !important;
+        font-size: 14px !important;
+    }
+}
+
+
+/* ============================================================
+   MSA UI v8 — compact spacing + full-width Start Review
+   Keeps the V4 layout; only tightens vertical rhythm and CTA width.
+   ============================================================ */
+
+/* Review Profile: tighten the vertical rhythm while keeping the reference card proportions. */
+.st-key-review-profile-shell {
+    padding: 1.15rem 1.25rem 1.25rem 1.25rem !important;
+    margin-bottom: 1rem !important;
+}
+.st-key-review-profile-shell .msa-review-profile-heading {
+    margin-bottom: .35rem !important;
+}
+.st-key-review-profile-shell .st-key-review-profile-choices {
+    margin: .65rem 0 .8rem 0 !important;
+}
+.st-key-review-profile-shell .st-key-review-profile-choices [data-testid="stHorizontalBlock"] {
+    gap: 8px !important;
+}
+.st-key-review-profile-shell .st-key-review-profile-choices .stButton > button {
+    min-height: 42px !important;
+    height: 42px !important;
+    padding: 0 24px !important;
+}
+.st-key-review-profile-shell .msa-profile-confirmed {
+    padding: .78rem 1rem !important;
+    border-radius: 16px !important;
+}
+
+/* Upload Material: reduce excessive vertical gaps between heading, uploader, file card and status. */
+.st-key-upload-material-card {
+    padding: 1rem 1.15rem 1.05rem 1.15rem !important;
+}
+.st-key-upload-material-card .msa-upload-heading {
+    margin-bottom: .55rem !important;
+}
+.st-key-upload-material-card .msa-upload-subtitle {
+    margin-top: 2px !important;
+    line-height: 1.28 !important;
+}
+.st-key-upload-material-card .msa-upload-shell {
+    margin-top: .35rem !important;
+    margin-bottom: .35rem !important;
+}
+.st-key-upload-material-card .msa-upload-file-summary {
+    margin-top: .65rem !important;
+    padding: .68rem .85rem !important;
+}
+.st-key-upload-material-card .msa-upload-status {
+    margin-top: .65rem !important;
+    padding: .72rem .9rem !important;
+}
+.st-key-upload-material-card .msa-upload-status-text {
+    margin-top: 2px !important;
+    line-height: 1.3 !important;
+}
+
+/* Start Review: full-width CTA aligned with the upload card/frame. */
+.st-key-start-review-action {
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+}
+.st-key-start-review-action > div {
+    width: 100% !important;
+}
+.st-key-start-review-action .stButton,
+.st-key-start-review-action .stButton > div {
+    width: 100% !important;
+}
+.st-key-start-review-action .stButton > button {
+    width: 100% !important;
+    min-height: 44px !important;
+    height: 44px !important;
+}
+
+@media (max-width: 760px) {
+    .st-key-review-profile-shell {
+        padding: 1rem !important;
+    }
+    .st-key-upload-material-card {
+        padding: .9rem !important;
+    }
+}
+
+/* ============================================================
+   MSA UI v9 — tighter section spacing
+   Keep the V5 layout; pull Upload Material and Start Review upward.
+   ============================================================ */
+
+/* Pull Upload Material closer to the Review Profile section above. */
+.st-key-upload-material-card {
+    margin-top: -0.55rem !important;
+}
+
+/* Pull the full-width Start Review CTA closer to the Upload Material card. */
+.st-key-start-review-action {
+    margin-top: -0.60rem !important;
+}
+
+/* Keep the CTA visually attached to the content above without changing its width. */
+.st-key-start-review-action .stButton > button {
+    margin-top: 0 !important;
+}
+
+@media (max-width: 760px) {
+    .st-key-upload-material-card {
+        margin-top: -0.4rem !important;
+    }
+    .st-key-start-review-action {
+        margin-top: -0.45rem !important;
+    }
+}
+
+
+/* ============================================================
+   MSA UI v10 — precise section-gap tuning
+   Only reduce the two outer gaps requested by the user.
+   ============================================================ */
+
+/* Gap between Review Profile card and Upload Material section. */
+.st-key-profile-upload-divider {
+    margin-top: -0.55rem !important;
+    margin-bottom: -0.85rem !important;
+    padding: 0 !important;
+    transform: translateY(-20px) !important;
+}
+.st-key-profile-upload-divider [data-testid="stHorizontalRule"] {
+    margin: 0 !important;
+    position: relative !important;
+    top: -12px !important;
+}
+
+/* Gap between Upload Material card and Start Review section. */
+.st-key-upload-start-divider {
+    margin-top: -1.8rem !important;
+    margin-bottom: -0 !important;
+    padding: 0 !important;
+}
+.st-key-upload-start-divider [data-testid="stHorizontalRule"] {
+    margin: 0 !important;
+    position: relative !important;
+    top: -16px !important;
+}
+
+/* Keep the actual CTA full-width; do not change its internal spacing. */
+.st-key-start-review-action {
+    margin-top: -0.8rem !important;
+}
+
+@media (max-width: 760px) {
+    .st-key-profile-upload-divider {
+        margin-top: -0.35rem !important;
+        margin-bottom: -0.65rem !important;
+    }
+    .st-key-upload-start-divider {
+        margin-top: -0.25rem !important;
+        margin-bottom: -0.65rem !important;
+    }
+}
+/* ============================================================
+   MSA UI v10 — direct Start New Review CTA
+   Use the same Mulberry visual language as the result navigator.
+   The confirmation card / second button are removed from app.py.
+   ============================================================ */
+.st-key-new_review .stButton > button,
+.st-key-new_review button {
+    background:#830051 !important;
+    border-color:#830051 !important;
+    color:#ffffff !important;
+    box-shadow:0 8px 20px rgba(131,0,81,.22), 0 2px 6px rgba(131,0,81,.12) !important;
+    transition:all .18s ease !important;
+}
+.st-key-new_review .stButton > button:hover,
+.st-key-new_review button:hover {
+    background:#830051 !important;
+    border-color:#830051 !important;
+    color:#ffffff !important;
+    transform:translateY(-1px) !important;
+}
+.st-key-new_review .stButton > button:active,
+.st-key-new_review button:active {
+    transform:translateY(0) !important;
+}
+
+
+/* ============================================================
+   SUMMARY RESULT — REFERENCE LAYOUT
+   Scoped to the Summary view only.
+   ============================================================ */
+
+.msa-summary-result-shell {
+    width: 100%;
+    margin: 0.15rem 0 0.5rem;
+}
+
+.msa-summary-result-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 2.75rem 3.15rem 2.55rem;
+    border: 1px solid rgba(255,255,255,0.88);
+    border-radius: 30px;
+    background:
+        radial-gradient(circle at 94% 12%, rgba(246, 201, 110, 0.18), transparent 24%),
+        radial-gradient(circle at 76% 88%, rgba(183, 207, 238, 0.16), transparent 27%),
+        linear-gradient(135deg, rgba(255,255,255,0.98), rgba(250,250,252,0.94));
+    box-shadow:
+        0 22px 42px rgba(39, 20, 50, 0.10),
+        0 2px 8px rgba(39, 20, 50, 0.05);
+}
+
+.msa-summary-result-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.62rem;
+    padding: 0.58rem 1rem;
+    border: 1px solid rgba(124, 0, 73, 0.16);
+    border-radius: 999px;
+    background: rgba(255,255,255,0.78);
+    color: #820052;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.11em;
+    line-height: 1;
+}
+
+.msa-summary-result-dot {
+    width: 8px;
+    height: 8px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: #f0b000;
+    box-shadow: 0 0 0 4px rgba(240,176,0,0.10);
+}
+
+.msa-summary-result-title {
+    margin-top: 1.45rem;
+    color: #5d0041;
+    font-size: clamp(2.65rem, 5vw, 4rem);
+    font-weight: 650;
+    letter-spacing: -0.025em;
+    line-height: 0.98;
+}
+
+.msa-summary-result-message {
+    margin-top: 0.8rem;
+    max-width: 760px;
+    color: #687486;
+    font-size: 0.98rem;
+    line-height: 1.55;
+}
+
+.msa-summary-result-meta {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 2.4rem;
+    margin-top: 2.05rem;
+    padding-top: 1.45rem;
+    border-top: 1px solid rgba(74, 80, 93, 0.13);
+}
+
+.msa-summary-result-meta-label {
+    color: #788293;
+    font-size: 0.72rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.msa-summary-result-meta-value {
+    margin-top: 0.55rem;
+    color: #252830;
+    font-size: 1.02rem;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+}
+
+.msa-summary-result-metrics {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1.05rem;
+    margin-top: 1.15rem;
+}
+
+.msa-summary-metric-card {
+    min-width: 0;
+    min-height: 124px;
+    padding: 1.35rem 1.45rem 1.25rem;
+    border: 1px solid rgba(255,255,255,0.92);
+    border-radius: 18px;
+    background: rgba(255,255,255,0.88);
+    box-shadow: 0 9px 22px rgba(39, 20, 50, 0.055);
+}
+
+.msa-summary-metric-label {
+    color: #758093;
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    line-height: 1.2;
+}
+
+.msa-summary-metric-value {
+    margin-top: 0.62rem;
+    color: #202226;
+    font-size: 2.55rem;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    line-height: 1;
+}
+
+.msa-summary-metric-value.msa-summary-metric-high {
+    color: #d63b3b;
+}
+
+.msa-summary-metric-value.msa-summary-metric-medium {
+    color: #edae00;
+}
+
+.msa-summary-metric-value.msa-summary-metric-low {
+    color: #2a9d5b;
+}
+
+.msa-summary-metric-meta {
+    margin-top: 0.48rem;
+    color: #7c8493;
+    font-size: 0.78rem;
+    line-height: 1.3;
+}
+
+.msa-summary-human-review {
+    display: flex;
+    align-items: flex-start;
+    gap: 1rem;
+    margin-top: 1.35rem;
+    padding: 1.15rem 1.35rem;
+    border: 1px solid #f0c557;
+    border-radius: 17px;
+    background: rgba(255, 242, 205, 0.70);
+}
+
+.msa-summary-human-icon {
+    display: grid;
+    place-items: center;
+    width: 30px;
+    height: 30px;
+    flex: 0 0 auto;
+    border-radius: 50%;
+    background: #f2ad00;
+    color: #ffffff;
+    font-size: 0.88rem;
+    font-weight: 900;
+}
+
+.msa-summary-human-title {
+    color: #252830;
+    font-size: 0.98rem;
+    font-weight: 800;
+    line-height: 1.35;
+}
+
+.msa-summary-human-message {
+    margin-top: 0.3rem;
+    color: #7b5a0b;
+    font-size: 0.9rem;
+    line-height: 1.5;
+}
+
+/* Status-specific treatment */
+.msa-summary-result-pass .msa-summary-result-title {
+    color: #176b3c;
+}
+
+.msa-summary-result-action .msa-summary-result-title {
+    color: #a51f28;
+}
+
+.msa-summary-result-pass .msa-summary-result-dot {
+    background: #2a9d5b;
+    box-shadow: 0 0 0 4px rgba(42,157,91,0.10);
+}
+
+.msa-summary-result-action .msa-summary-result-dot {
+    background: #c83b3b;
+    box-shadow: 0 0 0 4px rgba(200,59,59,0.10);
+}
+
+.msa-summary-result-pass .msa-summary-human-review {
+    border-color: #b9dfc8;
+    background: rgba(233,247,238,0.76);
+}
+
+.msa-summary-result-pass .msa-summary-human-icon {
+    background: #2a9d5b;
+}
+
+.msa-summary-result-pass .msa-summary-human-message {
+    color: #286c45;
+}
+
+.msa-summary-result-action .msa-summary-human-review {
+    border-color: #efb0b0;
+    background: rgba(255,240,240,0.76);
+}
+
+.msa-summary-result-action .msa-summary-human-icon {
+    background: #c83b3b;
+}
+
+.msa-summary-result-action .msa-summary-human-message {
+    color: #8e3030;
+}
+
+@media (max-width: 900px) {
+    .msa-summary-result-hero {
+        padding: 2.1rem 2rem;
+    }
+
+    .msa-summary-result-metrics {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 680px) {
+    .msa-summary-result-hero {
+        padding: 1.65rem 1.25rem;
+        border-radius: 22px;
+    }
+
+    .msa-summary-result-title {
+        font-size: 2.45rem;
+    }
+
+    .msa-summary-result-meta {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .msa-summary-result-metrics {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 0.75rem;
+    }
+
+    .msa-summary-metric-card {
+        min-height: 110px;
+        padding: 1.05rem 1rem;
+    }
+
+    .msa-summary-metric-value {
+        font-size: 2.15rem;
+    }
+}
+
+@media (max-width: 430px) {
+    .msa-summary-result-metrics {
+        grid-template-columns: 1fr;
+    }
+
+    .msa-summary-human-review {
+        gap: 0.7rem;
+        padding: 1rem;
+    }
+}
+
+/* ============================================================
+   FINDING RULE DESCRIPTION — FRAMED NOTE
+   UI refinement: make the rule description visually distinct
+   without changing the existing Finding card structure.
+   ============================================================ */
+.msa-inline-rule-note {
+    margin-top: 0.75rem !important;
+    padding: 0.72rem 0.82rem !important;
+    background: #f1f3f5 !important;
+    border: 1px solid #d9dee3 !important;
+    border-radius: 10px !important;
+    color: var(--msa-text) !important;
+    font-size: 0.78rem !important;
+    line-height: 1.58 !important;
+    overflow-wrap: anywhere;
+    box-sizing: border-box;
+}
+
+.msa-finding-card .msa-inline-rule-note {
+    color: var(--msa-text) !important;
+}
+
+@media (max-width: 760px) {
+    .msa-inline-rule-note {
+        padding: 0.68rem 0.75rem !important;
+        line-height: 1.55 !important;
+    }
+}
+
+/* ============================================================
+   FINDING / WHY FLAGGED — FRAMED EXPLANATION BLOCKS
+   UI refinement: give the Finding and Why-was-this-flagged
+   descriptions the same clear framed treatment as the Rule Description.
+   ============================================================ */
+.msa-finding-card .msa-finding-text {
+    margin-top: 0.35rem !important;
+    padding: 0.72rem 0.82rem !important;
+    background: #f1f3f5 !important;
+    border: 1px solid #d9dee3 !important;
+    border-radius: 10px !important;
+    color: var(--msa-text) !important;
+    line-height: 1.62 !important;
+    overflow-wrap: anywhere;
+    box-sizing: border-box;
+}
+
+@media (max-width: 760px) {
+    .msa-finding-card .msa-finding-text {
+        padding: 0.68rem 0.75rem !important;
+        line-height: 1.58 !important;
+    }
+}
+
+/* ============================================================
+   PHASE 2 UI REFINEMENT — EVIDENCE + AI EXPLANATION
+   Match the approved visual references without changing layout.
+   ============================================================ */
+
+/* Evidence: soft lime/yellow evidence container + matching chips. */
+.msa-finding-card .msa-evidence-quote {
+    background: #f8f9ea !important;
+    border: 1px solid #eef3b8 !important;
+    border-left: 4px solid #c5d704 !important;
+    border-radius: 10px !important;
+    padding: 0.7rem 0.8rem !important;
+}
+
+.msa-finding-card .msa-evidence-quote .msa-chip,
+.msa-evidence-quote .msa-chip {
+    background: #eef3b8 !important;
+    border: 1px solid #dce78a !important;
+    color: #4a5a00 !important;
+    border-radius: 8px !important;
+    font-weight: 650 !important;
+}
+
+/* AI explanation disclosure: use the light blue background from the reference.
+   Keep the inner explanation card white for visual hierarchy. */
+.msa-finding-card .msa-ai-disclosure {
+    background: #f5edf4 !important;
+    border: 1px solid #dbe5ee !important;
+}
+
+.msa-finding-card .msa-ai-disclosure .msa-ai-explanation-card {
+    background: #ffffff !important;
+    border: 1px solid #dce6ef !important;
+}
+
+
+/* ============================================================
+   FINDING CARD — UNIFIED FONT SIZE
+   Keep typography hierarchy through weight/spacing, while using
+   one consistent font size across the complete Finding card.
+   ============================================================ */
+.msa-finding-card,
+.msa-finding-card * {
+    font-size: 0.78rem !important;
+}
+
+.msa-finding-card {
+    line-height: 1.5 !important;
+}
+
+.msa-finding-card .msa-finding-label,
+.msa-finding-card .msa-evidence-label,
+.msa-finding-card .msa-ai-field-label {
+    line-height: 1.5 !important;
+}
+
+.msa-finding-card .msa-status-pill,
+.msa-finding-card .msa-chip {
+    line-height: 1.4 !important;
+}
+
+
+/* ============================================================
+   CONTEXT ANALYSIS — UNIFIED FONT SIZE
+   Match the Finding page typography for a consistent review
+   experience. Keep hierarchy through weight/spacing.
+   ============================================================ */
+.msa-context-card,
+.msa-context-card * {
+    font-size: 0.78rem !important;
+}
+
+.msa-context-card {
+    line-height: 1.5 !important;
+}
+
+.msa-context-card .msa-small-label {
+    line-height: 1.5 !important;
+}
+
+.msa-context-card .msa-status-pill,
+.msa-context-card .msa-chip {
+    line-height: 1.4 !important;
+}
+
+
+/* ============================================================
+   AI ANALYSIS + REPORT — UNIFIED FONT SIZE
+   Match Finding / Context Analysis typography.
+   Hierarchy remains through weight, labels and spacing.
+   ============================================================ */
+
+/* AI Analysis */
+.msa-ai-card,
+.msa-ai-card * {
+    font-size: 0.78rem !important;
+}
+
+.msa-ai-card {
+    line-height: 1.5 !important;
+}
+
+.msa-ai-card .msa-ai-field-label,
+.msa-ai-card .msa-ai-spotlight-kicker {
+    line-height: 1.5 !important;
+}
+
+.msa-ai-card .msa-status-pill,
+.msa-ai-card .msa-chip {
+    line-height: 1.4 !important;
+}
+
+.msa-ai-spotlight,
+.msa-ai-spotlight * {
+    font-size: 0.78rem !important;
+}
+
+.msa-ai-spotlight {
+    line-height: 1.5 !important;
+}
+
+.msa-ai-spotlight .msa-ai-field-label {
+    line-height: 1.5 !important;
+}
+
+/* Report */
+.msa-report-status,
+.msa-report-status *,
+.msa-cover-preview,
+.msa-cover-preview * {
+    font-size: 0.78rem !important;
+}
+
+.msa-report-status,
+.msa-cover-preview {
+    line-height: 1.5 !important;
+}
+
+.msa-cover-preview .msa-small-label {
+    line-height: 1.5 !important;
+}
+
+.msa-cover-preview .msa-cover-title {
+    font-size: 0.78rem !important;
+    line-height: 1.5 !important;
+}
+
+
+/* ============================================================
+   RESULTS NAVIGATION — LARGER, MORE READABLE LABELS
+   Summary / Findings / Context Analysis / AI Analysis / Report
+   ============================================================ */
+.st-key-results-nav-shell .stButton > button {
+    font-size: 17px !important;
+    font-weight: 700 !important;
+}
+
+@media (max-width: 760px) {
+    .st-key-results-nav-shell .stButton > button {
+        font-size: 13px !important;
+    }
+}
+
+
+/* ============================================================
+   RESULTS NAVIGATION — EXTRA LARGE READABILITY
+   Final adjustment: Summary / Findings / Context Analysis /
+   AI Analysis / Report
+   ============================================================ */
+.st-key-results-nav-shell .stButton > button {
+    font-size: 20px !important;
+    font-weight: 700 !important;
+}
+
+@media (max-width: 760px) {
+    .st-key-results-nav-shell .stButton > button {
+        font-size: 15px !important;
+    }
+}
+
+
+/* ============================================================
+   RESULTS NAV — FORCE LABEL SIZE ON STREAMLIT BUTTON CONTENT
+   Streamlit renders the visible label inside nested p/span
+   elements, so target the descendants as well as the button.
+   ============================================================ */
+.st-key-results-nav-shell .stButton > button,
+.st-key-results-nav-shell .stButton > button *,
+.st-key-results-nav-shell .stButton > button p,
+.st-key-results-nav-shell .stButton > button span {
+    font-size: 18px !important;
+    font-weight: 700 !important;
+    line-height: 1.2 !important;
+}
+
+@media (max-width: 760px) {
+    .st-key-results-nav-shell .stButton > button,
+    .st-key-results-nav-shell .stButton > button *,
+    .st-key-results-nav-shell .stButton > button p,
+    .st-key-results-nav-shell .stButton > button span {
+        font-size: 16px !important;
+    }
+}
+
+
+/* ============================================================
+   SUMMARY — USE SEGoe UI CONSISTENTLY
+   Only the two requested typography areas.
+   ============================================================ */
+.msa-summary-result-title,
+.msa-summary-metric-value,
+.msa-summary-metric-value.msa-summary-metric-high,
+.msa-summary-metric-value.msa-summary-metric-medium,
+.msa-summary-metric-value.msa-summary-metric-low {
+    font-family: "Segoe UI", SegoeUI, Arial, sans-serif !important;
+}
+
+/* ============================================================
+   HERO — SEGoe UI FONT ONLY
+   Preserve all existing sizes, weights, spacing and layout.
+   ============================================================ */
+.msa-hero-glass,
+.msa-hero-glass * {
+    font-family: "Segoe UI", SegoeUI, Arial, sans-serif !important;
+}
+
+
+/* HERO HTML/CONTAINER FIX — prevent title wrapping at the HTML level */
+.msa-hero-glass .msa-hero-title {
+    white-space: nowrap !important;
+    display: block !important;
+    width: fit-content !important;
+    max-width: 100% !important;
+    overflow: visible !important;
+    word-break: keep-all !important;
+    overflow-wrap: normal !important;
+}
+
+
+/* HERO TITLE — lighter weight */
+.msa-hero-glass .msa-hero-title {
+    font-family: "Segoe UI", SegoeUI, Arial, sans-serif !important;
+    font-weight: 700 !important;
+    letter-spacing: -0.015em !important;
+}
+
+
+/* Application → Review Profile spacing */
+.st-key-application-nav-shell {
+    margin-bottom: 8px !important;
+}
+
+.st-key-review-profile-shell {
+    margin-top: 0 !important;
+}
+
+
+/* APPLICATION NAV — Review / Rule Management typography */
+.st-key-application-nav-shell .st-key-application-pill .stButton > button,
+.st-key-application-nav-shell .st-key-application-pill .stButton > button *,
+.st-key-application-nav-shell .st-key-application-pill .stButton > button p,
+.st-key-application-nav-shell .st-key-application-pill .stButton > button span {
+    font-size: 15px !important;
+    font-weight: 650 !important;
+}
+
+
+/* REVIEW PROFILE — PROMOMAT / NON-PROMOMAT typography */
+.st-key-review-profile-shell .st-key-review-profile-choices .stButton > button[kind="primary"],
+.st-key-review-profile-shell .st-key-review-profile-choices .stButton > button[kind="primary"] * {
+    font-size: 15px !important;
+    font-weight: 800 !important;
+}
+.st-key-review-profile-shell .st-key-review-profile-choices .stButton > button[kind="secondary"],
+.st-key-review-profile-shell .st-key-review-profile-choices .stButton > button[kind="secondary"] * {
+    font-size: 15px !important;
+    font-weight: 500 !important;
+}
+
+
+/* Tighten gap between uploader and uploaded-file summary */
+.st-key-upload-material-card .msa-upload-shell {
+    margin-bottom: -1rem !important;
+}
+
+.st-key-upload-material-card .msa-upload-file-summary {
+    margin-top: -1rem !important;
+}
+
+/* ============================================================
+   MSA PHASE 3 — PRE-REVIEW COVER PAGE OUTPUT
+   Output / presentation layer only. Core review logic unchanged.
+   ============================================================ */
+
+.msa-report-status {
+    border-left: 3px solid var(--az-mulberry) !important;
+}
+
+.msa-cover-preview {
+    margin-top: 1rem;
+    padding: 1.35rem 1.4rem 1.25rem !important;
+    border-radius: 20px !important;
+    background: rgba(255,255,255,.84) !important;
+    border: 1px solid rgba(255,255,255,.96) !important;
+    box-shadow: 0 14px 34px rgba(72,38,65,.10) !important;
+    backdrop-filter: blur(22px) saturate(155%);
+    -webkit-backdrop-filter: blur(22px) saturate(155%);
+}
+
+.msa-cover-preview-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    padding-bottom: .95rem;
+    border-bottom: 1px solid rgba(131,0,81,.10);
+}
+
+.msa-cover-kicker {
+    color: #777f88;
+    font-size: .62rem;
+    line-height: 1.3;
+    font-weight: 850;
+    letter-spacing: .10em;
+    text-transform: uppercase;
+}
+
+.msa-cover-title {
+    margin-top: .35rem;
+    color: var(--az-mulberry) !important;
+    font-size: 1.22rem !important;
+    line-height: 1.25;
+    font-weight: 850 !important;
+    letter-spacing: -.02em;
+}
+
+.msa-cover-subtitle {
+    margin-top: .25rem;
+    color: #737b85;
+    font-size: .72rem;
+    line-height: 1.45;
+}
+
+.msa-cover-preview-badge {
+    flex: 0 0 auto;
+    margin-top: .05rem;
+    padding: .42rem .7rem;
+    border-radius: 999px;
+    font-size: .65rem;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: .03em;
+}
+
+.msa-cover-preview-badge.msa-status-low {
+    background: var(--msa-low-bg) !important;
+    border-color: var(--msa-low-border) !important;
+    color: var(--msa-low-text) !important;
+}
+
+.msa-cover-preview-badge.msa-status-medium {
+    background: var(--msa-medium-bg) !important;
+    border-color: var(--msa-medium-border) !important;
+    color: var(--msa-medium-text) !important;
+}
+
+.msa-cover-preview-badge.msa-status-high {
+    background: var(--msa-high-bg) !important;
+    border-color: var(--msa-high-border) !important;
+    color: var(--msa-high-text) !important;
+}
+
+.msa-cover-preview .msa-cover-status {
+    display: flex;
+    flex-direction: column;
+    gap: .25rem;
+    margin: .95rem 0 1rem;
+    padding: .82rem .9rem;
+    border-radius: 12px;
+    background: rgba(248,249,250,.78);
+    border: 1px solid rgba(131,0,81,.08);
+    color: #27313a;
+    font-size: .74rem;
+    line-height: 1.55;
+}
+
+.msa-cover-preview .msa-cover-status strong {
+    color: #27313a;
+    font-weight: 750;
+}
+
+.msa-cover-status-high {
+    border-left: 3px solid var(--msa-high-text) !important;
+}
+
+.msa-cover-status-medium {
+    border-left: 3px solid var(--msa-medium-text) !important;
+}
+
+.msa-cover-status-low {
+    border-left: 3px solid var(--msa-low-text) !important;
+}
+
+.msa-cover-meta-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: .6rem;
+    margin-top: .2rem;
+}
+
+.msa-cover-meta-grid > div {
+    min-width: 0;
+    box-sizing: border-box;
+    padding: .72rem .75rem;
+    border: 1px solid rgba(131,0,81,.09);
+    border-radius: 11px;
+    background: rgba(255,255,255,.64);
+}
+
+.msa-cover-meta-grid .msa-small-label {
+    margin-bottom: .3rem;
+    font-size: .58rem;
+}
+
+.msa-cover-meta-grid strong {
+    display: block;
+    color: var(--msa-text-strong);
+    font-size: .76rem;
+    line-height: 1.4;
+    font-weight: 720;
+    overflow-wrap: anywhere;
+}
+
+.msa-cover-summary-label {
+    margin: 1rem 0 .55rem;
+    color: #777f88;
+    font-size: .62rem;
+    font-weight: 850;
+    letter-spacing: .08em;
+}
+
+.msa-cover-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: .55rem;
+}
+
+.msa-cover-summary-grid > div {
+    padding: .65rem .45rem;
+    border-radius: 10px;
+    text-align: center;
+    background: rgba(248,249,250,.72);
+    border: 1px solid rgba(131,0,81,.07);
+}
+
+.msa-cover-summary-grid strong {
+    display: block;
+    color: var(--msa-text-strong);
+    font-size: 1.05rem;
+    line-height: 1.15;
+    font-weight: 800;
+}
+
+.msa-cover-summary-grid span {
+    display: block;
+    margin-top: .18rem;
+    color: #7a818a;
+    font-size: .55rem;
+    font-weight: 800;
+    letter-spacing: .045em;
+    text-transform: uppercase;
+}
+
+.msa-cover-summary-grid .msa-cover-count-high {
+    background: rgba(255,240,240,.62);
+    border-color: rgba(231,170,170,.45);
+}
+.msa-cover-summary-grid .msa-cover-count-high strong { color: var(--msa-high-text); }
+
+.msa-cover-summary-grid .msa-cover-count-medium {
+    background: rgba(255,247,223,.68);
+    border-color: rgba(239,207,114,.45);
+}
+.msa-cover-summary-grid .msa-cover-count-medium strong { color: var(--msa-medium-text); }
+
+.msa-cover-summary-grid .msa-cover-count-low {
+    background: rgba(234,248,239,.68);
+    border-color: rgba(184,227,199,.48);
+}
+.msa-cover-summary-grid .msa-cover-count-low strong { color: var(--msa-low-text); }
+
+.msa-cover-next-step {
+    margin-top: .75rem;
+    padding: .72rem .8rem;
+    border-radius: 10px;
+    background: rgba(131,0,81,.035);
+    border: 1px solid rgba(131,0,81,.08);
+    color: #303942;
+    font-size: .72rem;
+    line-height: 1.55;
+}
+
+.msa-cover-next-step .msa-small-label {
+    margin-bottom: .25rem;
+}
+
+.msa-cover-disclaimer {
+    margin-top: .8rem;
+    padding-top: .72rem;
+    border-top: 1px solid rgba(131,0,81,.08);
+    color: #7a818a;
+    font-size: .64rem;
+    line-height: 1.55;
+}
+
+.msa-cover-disclaimer strong {
+    color: #5d6670;
+}
+
+@media (max-width: 800px) {
+    .msa-cover-meta-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .msa-cover-summary-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 560px) {
+    .msa-cover-preview {
+        padding: 1rem !important;
+    }
+    .msa-cover-preview-header {
+        flex-direction: column;
+    }
+    .msa-cover-preview-badge {
+        align-self: flex-start;
+    }
+    .msa-cover-meta-grid,
+    .msa-cover-summary-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .msa-cover-summary-grid > div:last-child {
+        grid-column: 1 / -1;
+    }
+}
+
+/* ============================================================
+   PHASE 3 REFINEMENT — HUMAN REVIEW ALERT
+   Emphasize the human decision point using the approved warning-card style.
+   ============================================================ */
+.msa-human-review-alert {
+    display: flex;
+    align-items: flex-start;
+    gap: .85rem;
+    margin-top: .8rem;
+    padding: .78rem .9rem;
+    background: #fff7df;
+    border: 1px solid #efc34f;
+    border-radius: 14px;
+    box-sizing: border-box;
+}
+
+.msa-human-review-icon {
+    flex: 0 0 auto;
+    width: 1.8rem;
+    height: 1.8rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: #f2ad00;
+    color: #ffffff;
+    font-size: .82rem;
+    font-weight: 850;
+    line-height: 1;
+}
+
+.msa-human-review-copy {
+    min-width: 0;
+}
+
+.msa-human-review-title {
+    color: #2c2f33;
+    font-size: .78rem;
+    line-height: 1.35;
+    font-weight: 800;
+}
+
+.msa-human-review-text {
+    margin-top: .22rem;
+    color: #8a6500;
+    font-size: .68rem;
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+}
+
+.msa-human-review-text strong {
+    color: #755400;
+    font-weight: 800;
+}
+
+@media (max-width: 560px) {
+    .msa-human-review-alert {
+        gap: .7rem;
+        padding: .75rem .78rem;
+    }
+}
+
+
+/* ============================================================
+   REPORT — Download Button Spacing
+   Add visual separation between Cover Preview and Download CTA.
+   ============================================================ */
+
+.st-key-download_cover {
+    margin-top: 12px !important;
+}
+
+@media (max-width: 760px) {
+    .st-key-download_cover {
+        margin-top: 10px !important;
+    }
+}
+
+
+/* ============================================================
+   REPORT — Download Pre-Review Cover Page
+   Light blue secondary action
+   ============================================================ */
+
+.st-key-download_cover .stDownloadButton > button,
+.st-key-download_cover button {
+    background: #e6f6fb !important;
+    border: 1px solid #b9e4f0 !important;
+    color: #17637a !important;
+    box-shadow: none !important;
+    font-weight: 600 !important;
+}
+
+.st-key-download_cover .stDownloadButton > button:hover,
+.st-key-download_cover button:hover {
+    background: #d9f1f8 !important;
+    border-color: #9fd8e8 !important;
+    color: #14566b !important;
+}
+
+.st-key-download_cover .stDownloadButton > button:active,
+.st-key-download_cover button:active {
+    background: #ccebf4 !important;
+}
+
+/* Keep the spacing from the Cover Preview */
+.st-key-download_cover {
+    margin-top: 12px !important;
+}
+
+@media (max-width: 760px) {
+    .st-key-download_cover {
+        margin-top: 10px !important;
+    }
 }

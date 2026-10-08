@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.0",
+  "rules": [
+    {
+      "rule_id": "DEMO-001",
+      "rule_name": "Comparative Statement",
+      "category": "PROMOMAT",
+      "rule_type": "phrase",
+      "keywords": [
+        "compared with",
+        "compared to",
+        "better"
+      ],
+      "context": "Comparative statement involving products or outcomes",
+      "severity": "High",
+      "action": "FLAG_FOR_REVIEW",
+      "status": "Active",
+      "description": "DEMO RULE ONLY - Used to test MSA rule processing.",
+      "version": "1.0"
+    },
+    {
+      "rule_id": "DEMO-002",
+      "rule_name": "Product Claim",
+      "category": "PROMOMAT",
+      "rule_type": "keyword",
+      "keywords": [
+        "effective",
+        "efficacy",
+        "safety"
+      ],
+      "context": "Product-related claim or statement",
+      "severity": "Medium",
+      "action": "FLAG_FOR_REVIEW",
+      "status": "Active",
+      "description": "DEMO RULE ONLY - Used to test MSA rule processing.",
+      "version": "1.0"
+    },
+    {
+      "rule_id": "DEMO-003",
+      "rule_name": "Non-Promotional Context",
+      "category": "NON_PROMOMAT",
+      "rule_type": "context",
+      "keywords": [
+        "meeting agenda",
+        "internal discussion",
+        "training"
+      ],
+      "context": "Potentially non-promotional meeting or internal content",
+      "severity": "Low",
+      "action": "CONTEXT_ONLY",
+      "status": "Active",
+      "description": "DEMO RULE ONLY - Used to test MSA context processing.",
+      "version": "1.0"
+    },
+    {
+      "rule_id": "DEMO-004 test",
+      "rule_name": "Test Keyword",
+      "category": "PROMOMAT",
+      "rule_type": "keyword",
+      "keywords": [
+        "Test"
+      ],
+      "context": "Test001",
+      "severity": "Medium",
+      "action": "FLAG_FOR_REVIEW",
+      "status": "Inactive",
+      "description": "DEMO RULE Test ONLY",
+      "version": "1.0"
+    }
+  ]
+}
