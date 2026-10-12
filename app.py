@@ -1,6 +1,10 @@
 
 import streamlit as st
 import os
+import zipfile
+import posixpath
+import xml.etree.ElementTree as ET
+import re
 import html
 import hashlib
 import hmac
@@ -60,11 +64,12 @@ try:
         disable_rule,
         count_rules,
         count_active_rules,
+        upsert_rules,
     )
 except Exception:
     load_rules = get_rule = add_rule = update_rule = delete_rule = None
     enable_rule = disable_rule = None
-    count_rules = count_active_rules = None
+    count_rules = count_active_rules = upsert_rules = None
 
 
 # ------------------------------------------------------------
@@ -315,9 +320,18 @@ def get_profile_mapping(profile):
     for rule in rules if isinstance(rules, list) else []:
         if not isinstance(rule, dict):
             continue
-        category = str(rule.get("category", "")).strip().upper()
         status = str(rule.get("status", "")).strip().lower()
-        if category == str(canonical).upper() and status == "active":
+        approval = str(rule.get("approval_status", "")).strip().upper()
+        applies_to = rule.get("applies_to", rule.get("category", ""))
+        if isinstance(applies_to, str):
+            applies = {x.strip().upper().replace("-", "_") for x in re.split(r"[;,|]", applies_to) if x.strip()}
+        elif isinstance(applies_to, (list, tuple, set)):
+            applies = {str(x).strip().upper().replace("-", "_") for x in applies_to if str(x).strip()}
+        else:
+            applies = set()
+        applies.add(str(rule.get("category", "")).strip().upper().replace("-", "_"))
+        is_approved = not approval or approval in {"APPROVED", "NS_APPROVED", "APPROVED_BY_NS", "APPROVED_BY_SOP_OWNER"}
+        if str(canonical).upper().replace("-", "_") in applies and status == "active" and is_approved:
             mapping["rules"].append(rule)
 
     mapping["rule_count"] = len(mapping["rules"])
@@ -628,7 +642,9 @@ def evidence_for_finding(evidence, finding):
             continue
         item_slide = item.get("slide_number", item.get("slide", ""))
         item_rule = item.get("rule_id", "")
-        if str(item_slide) == str(slide) and (not rule_id or str(item_rule) == str(rule_id)):
+        # Evidence must match both slide and rule ID. Never borrow evidence
+        # from another rule on the same slide when the finding has no rule ID.
+        if rule_id and str(item_slide) == str(slide) and str(item_rule) == str(rule_id):
             matches.append(item)
     return matches
 
@@ -661,45 +677,156 @@ def ai_item_for_finding(ai_result, finding):
 
 
 def build_ai_explanation(finding, ai_result):
+    """Build a finding-specific explanation, using slide context only as secondary evidence.
+
+    This prototype currently uses transparent rule-family reasoning, not a live generative
+    model call. It avoids presenting generic slide-level context text as if it explained
+    every rule finding.
+    """
     item = ai_item_for_finding(ai_result, finding)
     slide = finding.get("slide_number", finding.get("slide", "?"))
-    rule_name = finding.get("rule_name", finding.get("category", "configured rule"))
+    rule_id = str(finding.get("rule_id", "") or "").strip()
+    rule_name = str(finding.get("rule_name", finding.get("category", "configured rule")) or "configured rule").strip()
     signals = detected_values(finding)
+    signal_text = ", ".join(signals[:5]) if signals else "the matched slide content"
+    description = str(finding.get("description", finding.get("rule_description", "")) or "").strip()
+    identity = f"{rule_id} {rule_name} {' '.join(signals)}".casefold()
 
+    # Rule-specific explanation and next step: do not reuse one generic AI sentence for all findings.
+    if any(x in identity for x in ("comparative", "more effective", "better than", "superior", "inferior", "compared")):
+        explanation = (
+            f"On Slide {slide}, the wording '{signal_text}' may be read as a comparison or superiority statement. "
+            "The key question is whether the comparator, outcome and supporting evidence align with the claim as presented."
+        )
+        next_step = (
+            "Check the exact comparator and outcome, then compare the wording with the cited evidence. Confirm that the comparison is direct, fair and balanced, "
+            "including any important limitations or context."
+        )
+        context = "A comparative phrase was matched. The phrase alone cannot confirm whether the comparison is supported or appropriate."
+    elif any(x in identity for x in ("off-label", "indication", "dosage", "dose", "population", "route of administration", "prescribing information")):
+        explanation = (
+            f"On Slide {slide}, the matched wording ({signal_text}) relates to product use or prescribing information. "
+            "Whether it is appropriate depends on the current locally approved product information and the context in which it is used."
+        )
+        next_step = "Compare the exact statement with the current locally approved product information for indication, population, dose and route as applicable; escalate any mismatch."
+        context = "The match identifies a product-use topic for verification; it is not, by itself, evidence of off-label promotion."
+    elif any(x in identity for x in ("approval", "approved material", "expiry", "expiration", "expired", "renewal", "re-approval", "reapproval", "version")):
+        explanation = (
+            f"On Slide {slide}, the match ({signal_text}) may relate to approval status, validity or version control. "
+            "The review depends on the authoritative record for this specific material and version."
+        )
+        next_step = "Check the material ID/version and its current approval record, including validity or expiry details where applicable, before the material is used."
+        context = "This is a document-control signal; verify it against the source record rather than treating the text match as a confirmed issue."
+    elif any(x in identity for x in ("privacy", "personal data", "cybersecurity", "it security", "copyright", "consent", "permission", "image rights")):
+        explanation = (
+            f"On Slide {slide}, the match ({signal_text}) points to a possible privacy, security, consent or rights consideration. "
+            "The actual requirement depends on the data, asset and way it is used."
+        )
+        next_step = "Check the relevant permission/consent and any required notice; involve the privacy, IT security or rights owner if clearance is unclear."
+        context = "The keyword highlights an area to check, not a finding that a breach or rights violation has occurred."
+    elif any(x in identity for x in ("reference", "citation", "source", "evidence", "substantiat", "claim", "efficacy", "safety", "rule-0001")):
+        explanation = (
+            f"On Slide {slide}, the rule matched {signal_text}. This may be part of a product-related or factual claim, "
+            "so the important check is whether the actual statement is supported by the right source—not simply whether a reference is present."
+        )
+        next_step = "Trace the exact statement to its cited approved source. Confirm the source supports the same product, population, outcome and wording, and check that important qualifications are retained."
+        context = "The matched terms are screening evidence only. Review the surrounding sentence and slide context before deciding what action is needed."
+    else:
+        explanation = (
+            f"On Slide {slide}, the configured rule '{rule_name}' matched {signal_text}. "
+            f"The significance depends on the full statement and the rule's intended scope{': ' + description if description else ''}."
+        )
+        next_step = "Review the matched wording in its full slide context, verify the applicable source or process record, and refer unresolved questions to the responsible reviewer/NS."
+        context = "A rule match is a prompt for focused review, not a final compliance decision."
+
+    # Add the classifier's view only when it contributes useful, non-duplicative context.
     if item:
-        context = item.get("context", "Relevant material context was identified.")
-        reason = item.get("reason", "")
-        recommendation = item.get(
-            "recommendation",
-            finding.get("recommendation", "Review the detected content against the applicable reference."),
-        )
-        risk = item.get("risk_level", finding.get("severity", "Review"))
-        explanation = reason or (
-            f"Slide {slide} was identified in a context relevant to {rule_name}. "
-            "The finding should be reviewed against the applicable reference."
-        )
-        return {
-            "explanation": explanation,
-            "context": context,
-            "recommendation": recommendation,
-            "risk": risk,
-        }
+        classification = str(item.get("classification", item.get("category", "")) or "").replace("_", " ").strip().lower()
+        context_reason = str(item.get("reason", item.get("context", "")) or "").strip()
+        if classification and classification not in {"uncertain", "not classified"}:
+            context += f" Slide-level context was classified as {classification}; treat this as supporting context only."
+        elif context_reason and "not enough evidence" in context_reason.lower():
+            context += " Slide-level context is inconclusive, so the rule-specific evidence should be assessed on its own."
 
-    signal_text = ", ".join(signals) if signals else "the detected content"
+    # Prefer the more detailed evidence-layer recommendation if present; otherwise use the rule-specific next step.
+    recommendation = str(finding.get("recommendation", "") or "").strip() or next_step
     return {
-        "explanation": (
-            f"Slide {slide} triggered {rule_name}. "
-            f"The finding is supported by {signal_text} and should be reviewed "
-            "against the applicable reference."
-        ),
-        "context": "No slide-level AI context item was available for this finding.",
-        "recommendation": finding.get(
-            "recommendation",
-            "Review the detected content and confirm that it is supported by the applicable reference.",
-        ),
+        "explanation": explanation,
+        "context": context,
+        "recommendation": recommendation,
+        "suggestion": next_step,
         "risk": finding.get("severity", "Review"),
     }
 
+
+
+
+def translate_ai_explanation(finding, ai):
+    """Curated Thai localization for the full AI Explanation panel."""
+    slide = finding.get("slide_number", finding.get("slide", "?"))
+    signals = detected_values(finding)
+    signal_text = ", ".join(signals[:5]) if signals else "เนื้อหาที่ตรงกับกฎ"
+    identity = " ".join([
+        str(finding.get("rule_id", "") or ""),
+        str(finding.get("rule_name", finding.get("category", "")) or ""),
+        " ".join(signals),
+        str(finding.get("description", finding.get("rule_description", "")) or ""),
+    ]).casefold()
+
+    if any(x in identity for x in ("comparative", "more effective", "better than", "superior", "inferior", "compared")):
+        explanation = f"ในสไลด์ {slide} พบถ้อยคำ “{signal_text}” ซึ่งอาจสื่อถึงการเปรียบเทียบหรือการกล่าวอ้างความเหนือกว่า ควรตรวจสอบว่าตัวเปรียบเทียบ ผลลัพธ์ และหลักฐานสนับสนุนสอดคล้องกับข้อความที่นำเสนอหรือไม่"
+        context = "ระบบตรวจพบถ้อยคำที่ใช้ในการเปรียบเทียบ การพบถ้อยคำเพียงอย่างเดียวยังไม่ยืนยันว่าการเปรียบเทียบนั้นมีหลักฐานรองรับหรือเหมาะสม"
+    elif any(x in identity for x in ("off-label", "indication", "dosage", "dose", "population", "route of administration", "prescribing information")):
+        explanation = f"ในสไลด์ {slide} พบข้อความ “{signal_text}” ที่เกี่ยวข้องกับการใช้ผลิตภัณฑ์หรือข้อมูลการสั่งใช้ยา ความเหมาะสมต้องพิจารณาเทียบกับข้อมูลผลิตภัณฑ์ที่ได้รับอนุมัติในประเทศไทยฉบับปัจจุบันและบริบทของข้อความ"
+        context = "ระบบระบุหัวข้อเกี่ยวกับการใช้ผลิตภัณฑ์ที่ควรตรวจสอบ ไม่ได้หมายความว่าพบการส่งเสริมการใช้ยานอกข้อบ่งใช้แล้ว"
+    elif any(x in identity for x in ("approval", "approved material", "expiry", "expiration", "expired", "renewal", "re-approval", "reapproval", "version")):
+        explanation = f"ในสไลด์ {slide} พบข้อความ “{signal_text}” ซึ่งอาจเกี่ยวข้องกับสถานะการอนุมัติ อายุการใช้งาน หรือการควบคุมเวอร์ชันของเอกสาร ควรตรวจสอบกับระเบียนทางการของเอกสารและเวอร์ชันนี้"
+        context = "นี่เป็นสัญญาณให้ตรวจสอบการควบคุมเอกสาร ควรยืนยันกับแหล่งข้อมูลต้นทางก่อนสรุปว่ามีปัญหา"
+    elif any(x in identity for x in ("privacy", "personal data", "cybersecurity", "it security", "copyright", "consent", "permission", "image rights")):
+        explanation = f"ในสไลด์ {slide} พบข้อความ “{signal_text}” ที่อาจเกี่ยวข้องกับความเป็นส่วนตัว ความปลอดภัย ความยินยอม หรือสิทธิ์การใช้งาน ข้อกำหนดที่ต้องปฏิบัติตามขึ้นอยู่กับข้อมูล สื่อ และลักษณะการนำไปใช้จริง"
+        context = "คำหรือวลีที่ตรวจพบเป็นเพียงจุดที่ควรตรวจสอบ ไม่ใช่ข้อสรุปว่ามีการละเมิดหรือเกิดเหตุด้านความปลอดภัยแล้ว"
+    elif any(x in identity for x in ("reference", "citation", "source", "evidence", "substantiat", "claim", "efficacy", "safety", "rule-0001")):
+        explanation = f"ในสไลด์ {slide} กฎตรวจพบคำหรือวลี “{signal_text}” ซึ่งอาจเป็นส่วนหนึ่งของข้อความกล่าวอ้างเกี่ยวกับผลิตภัณฑ์หรือข้อเท็จจริง ประเด็นสำคัญคือข้อความนั้นได้รับการสนับสนุนจากแหล่งอ้างอิงที่ถูกต้องหรือไม่ ไม่ใช่เพียงมีการใส่แหล่งอ้างอิงไว้หรือไม่"
+        context = "คำที่ตรวจพบใช้เป็นหลักฐานเบื้องต้นสำหรับคัดกรองเท่านั้น ควรอ่านประโยคโดยรอบและพิจารณาบริบทของสไลด์ก่อนตัดสินใจดำเนินการ"
+    else:
+        rule_name = str(finding.get("rule_name", finding.get("category", "กฎที่ตั้งค่าไว้")) or "กฎที่ตั้งค่าไว้").strip()
+        explanation = f"ในสไลด์ {slide} กฎ “{rule_name}” ตรงกับข้อความ “{signal_text}” ความสำคัญของข้อความนี้ขึ้นอยู่กับเนื้อหาโดยรวมและขอบเขตที่กฎดังกล่าวมีไว้ตรวจสอบ"
+        context = "การตรงกับกฎเป็นเพียงสัญญาณให้ตรวจสอบเพิ่มเติม ไม่ใช่ข้อสรุปด้าน Compliance ขั้นสุดท้าย"
+    return explanation, context
+
+def translate_recommendation_suggestion(finding, recommendation, suggestion):
+    """Return curated Thai text for recommendation/suggestion; no external translation service."""
+    identity = " ".join([
+        str(finding.get("rule_id", "") or ""),
+        str(finding.get("rule_name", finding.get("category", "")) or ""),
+        " ".join(detected_values(finding)),
+        str(finding.get("description", finding.get("rule_description", "")) or ""),
+    ]).casefold()
+
+    if any(x in identity for x in ("comparative", "more effective", "better than", "superior", "inferior", "compared")):
+        rec_th = "ตรวจสอบว่าข้อความเปรียบเทียบมีเอกสารอ้างอิงที่เหมาะสม และหลักฐานสนับสนุนข้อความ ผลลัพธ์ และผลิตภัณฑ์ที่กล่าวถึงตรงกันหรือไม่"
+        sug_th = "1. ตรวจสอบข้อความเปรียบเทียบและตัวเปรียบเทียบที่ระบุ\n2. ตรวจสอบว่าหลักฐานรองรับผลลัพธ์และบริบทที่กล่าวอ้าง\n3. ให้ NS พิจารณาตามกระบวนการอนุมัติที่เกี่ยวข้อง"
+    elif any(x in identity for x in ("off-label", "indication", "dosage", "dose", "population", "route of administration", "prescribing information")):
+        rec_th = "ตรวจสอบข้อความกับข้อมูลผลิตภัณฑ์ที่ได้รับอนุมัติในประเทศไทยฉบับปัจจุบัน โดยพิจารณาข้อบ่งใช้ กลุ่มผู้ป่วย ขนาดยา และวิธีให้ยาตามความเกี่ยวข้อง"
+        sug_th = "1. เทียบข้อความกับข้อมูลผลิตภัณฑ์ที่ได้รับอนุมัติฉบับปัจจุบัน\n2. ตรวจสอบข้อบ่งใช้ กลุ่มผู้ป่วย ขนาดยา หรือวิธีให้ยาในส่วนที่เกี่ยวข้อง\n3. หากพบความไม่สอดคล้อง ให้ส่งต่อผู้รับผิดชอบและ NS พิจารณา"
+    elif any(x in identity for x in ("approval", "approved material", "expiry", "expiration", "expired", "renewal", "re-approval", "reapproval", "version")):
+        rec_th = "ตรวจสอบรหัสเอกสาร รุ่น และสถานะการอนุมัติจากแหล่งข้อมูลทางการ รวมถึงวันหมดอายุหรือการต่ออายุถ้ามี"
+        sug_th = "1. ยืนยันรหัสเอกสารและหมายเลขเวอร์ชัน\n2. ตรวจสอบบันทึกการอนุมัติและช่วงเวลาที่มีผล\n3. หากข้อมูลไม่ชัดเจน ให้ยืนยันกับเจ้าของกระบวนการก่อนนำเอกสารไปใช้"
+    elif any(x in identity for x in ("privacy", "personal data", "cybersecurity", "it security", "copyright", "consent", "permission", "image rights")):
+        rec_th = "ตรวจสอบสิทธิ์การใช้ข้อมูลหรือสื่อ ความยินยอม และข้อกำหนดด้านความเป็นส่วนตัวหรือความปลอดภัยที่เกี่ยวข้อง"
+        sug_th = "1. ตรวจสอบว่ามีความยินยอมหรือสิทธิ์การใช้งานที่จำเป็น\n2. ตรวจสอบประกาศหรือเงื่อนไขการใช้ข้อมูลที่เกี่ยวข้อง\n3. หากยังไม่แน่ใจ ให้ปรึกษาทีม Privacy, IT Security หรือเจ้าของสิทธิ์ที่เกี่ยวข้อง"
+    elif any(x in identity for x in ("reference", "citation", "source", "evidence", "substantiat", "claim", "efficacy", "safety", "rule-0001")):
+        rec_th = "ตรวจสอบว่าข้อความกล่าวอ้างมีแหล่งอ้างอิงที่เหมาะสม และหลักฐานสนับสนุนผลิตภัณฑ์ กลุ่มผู้ป่วย ผลลัพธ์ และถ้อยคำที่ใช้จริง"
+        sug_th = "1. เชื่อมโยงข้อความที่กล่าวอ้างกับแหล่งอ้างอิงโดยตรง\n2. ตรวจสอบว่าหลักฐานตรงกับผลิตภัณฑ์ กลุ่มผู้ป่วย และผลลัพธ์ที่ระบุ\n3. ตรวจสอบว่าข้อจำกัดหรือเงื่อนไขสำคัญยังคงอยู่ และให้ NS พิจารณา"
+    else:
+        rec_th = "ตรวจสอบข้อความที่ระบบระบุในบริบทของสไลด์ทั้งหมด และยืนยันกับเอกสารอ้างอิงหรือกระบวนการที่เกี่ยวข้อง"
+        sug_th = "1. อ่านข้อความรอบคำหรือวลีที่ตรวจพบให้ครบถ้วน\n2. ตรวจสอบเอกสารอ้างอิงหรือบันทึกกระบวนการที่เกี่ยวข้อง\n3. ส่งคำถามที่ยังไม่ชัดเจนให้ผู้รับผิดชอบหรือ NS พิจารณา"
+
+    # A high-level severity cue is retained without turning a rule match into a compliance conclusion.
+    severity = str(finding.get("severity", "")).casefold()
+    if severity == "high":
+        rec_th = "ควรตรวจสอบก่อนดำเนินการต่อ: " + rec_th
+    return rec_th, sug_th
 
 def render_app_chrome():
     """Premium AstraZeneca glass product chrome used across both pages."""
@@ -750,10 +877,23 @@ def render_application_nav():
                     )
 
     if review_clicked and current != "Review":
+        # Lock Rule Management immediately when leaving it.
+        # Do this before changing the page because the navigation handler
+        # updates st.session_state.page directly.
+        if current == "Rule Management":
+            st.session_state.rule_admin_authenticated = False
+            st.session_state.rule_admin_login_error = ""
+            st.session_state.rule_admin_login_version = (
+                st.session_state.get("rule_admin_login_version", 0) + 1
+            )
+            st.session_state.rule_management_flash = None
         st.session_state.page = "Review"
         st.rerun()
 
     if rules_clicked and current != "Rule Management":
+        # Every entry into Rule Management must pass the password gate.
+        st.session_state.rule_admin_authenticated = False
+        st.session_state.rule_admin_login_error = ""
         st.session_state.page = "Rule Management"
         st.rerun()
 
@@ -792,16 +932,8 @@ def render_signal_chips(values):
     )
 
 
-def render_finding_card(finding, evidence, ai_result):
-    """Render one decision-ready finding in the Phase 2 review sequence.
-
-    Reviewer flow is intentionally linear:
-        Finding -> Evidence -> Why flagged -> Recommendation
-
-    The Evidence Layer is the preferred source for evidence, rationale, and
-    recommendation. Rule-engine values remain the fallback so older outputs
-    continue to render safely. AI remains supporting interpretation only.
-    """
+def render_finding_card(finding, evidence, ai_result, rule_index=1):
+    """Render one rule finding in a structured, two-column reviewer layout."""
     slide = finding.get("slide_number", finding.get("slide", "?"))
     rule_id = finding.get("rule_id", "")
     rule_name = finding.get("rule_name", finding.get("category", "Finding"))
@@ -809,11 +941,8 @@ def render_finding_card(finding, evidence, ai_result):
     action = finding.get("action", "FLAG_FOR_REVIEW")
     signals = detected_values(finding)
 
-    # Evidence Layer is the source of truth for the reviewer-facing
-    # explanation when it is available.
     evidence_matches = evidence_for_finding(evidence, finding)
     evidence_item = evidence_matches[0] if evidence_matches else {}
-
     evidence_values = evidence_item.get(
         "detected_evidence",
         evidence_item.get("matched_keywords", signals),
@@ -826,10 +955,7 @@ def render_finding_card(finding, evidence, ai_result):
         "why_flagged",
         finding.get(
             "why_flagged",
-            finding.get(
-                "reason",
-                "The configured review rule identified content that should be reviewed.",
-            ),
+            finding.get("reason", "The configured review rule identified content that should be reviewed."),
         ),
     )
     recommendation = evidence_item.get(
@@ -845,66 +971,160 @@ def render_finding_card(finding, evidence, ai_result):
             finding.get("rule_description", finding.get("description", "")),
         )
     )
-    evidence_source = evidence_item.get("source", "Evidence Layer / Rule Engine")
 
-    ai = build_ai_explanation(finding, ai_result)
+    ai_finding = dict(finding)
+    ai_finding["recommendation"] = recommendation
+    ai_finding["description"] = rule_description or ai_finding.get("description", "")
+    ai = build_ai_explanation(ai_finding, ai_result)
+    # Read the single global language selection placed below the result navigator.
+    language = st.session_state.get("result_language", "English")
+    recommendation_display = recommendation
+    suggestion_display = ai.get("suggestion", ai.get("recommendation", ""))
+    if language == "ไทย":
+        recommendation_display, suggestion_display = translate_recommendation_suggestion(
+            ai_finding, recommendation, suggestion_display
+        )
     ai_available = bool(ai.get("explanation") or ai.get("context") or ai.get("recommendation"))
-
-    rule_note = (
-        f'<div class="msa-inline-rule-note">{esc(rule_description)}</div>'
-        if rule_description else ""
-    )
-
     ai_panel = ""
+    is_thai = language == "ไทย"
+    explanation_display = ai.get("explanation", "")
+    context_display = ai.get("context", "")
+    if is_thai:
+        explanation_display, context_display = translate_ai_explanation(ai_finding, ai)
+    explanation_label = "คำอธิบายประกอบ" if is_thai else "AI-ASSISTED EXPLANATION"
+    suggestion_label = "ข้อเสนอแนะในการดำเนินการ" if is_thai else "Suggested Review Action"
+    ai_title = "ดูคำอธิบายประกอบ" if is_thai else "View AI Explanation"
+    ai_meta = "คำอธิบายประกอบเพื่อช่วยพิจารณาเท่านั้น" if is_thai else "AI ASSISTED · Contextual support only"
+    context_label = "บริบทที่ตรวจพบ" if is_thai else "Context Signal"
+    ai_explanation_title = "ข้อมูลเพิ่มเติมเพื่อประกอบการพิจารณา" if is_thai else "Additional context for human review"
+    disclaimer = ("ระบบให้ข้อมูลประกอบการพิจารณาเท่านั้น การตัดสินใจด้าน Compliance ขั้นสุดท้ายเป็นหน้าที่ของ Nominated Signatory"
+                  if is_thai else "AI provides contextual support only. Final compliance decision remains with the Nominated Signatory.")
+    finding_label = "สิ่งที่ตรวจพบ" if is_thai else "Finding"
+    evidence_label = "หลักฐานที่ตรวจพบ" if is_thai else "Evidence"
+    why_label = "เหตุผลที่ระบบระบุรายการนี้" if is_thai else "Why was this flagged?"
+    rule_note_label = "หมายเหตุของกฎ" if is_thai else "Rule note"
+    detected_source = f"ตรวจพบในเอกสารที่อัปโหลด · สไลด์ {esc(slide)}" if is_thai else f"Detected in uploaded material · Slide {esc(slide)}"
+    finding_content = (f'เนื้อหาในสไลด์ {esc(slide)} ตรงกับกฎตรวจสอบ <strong>{esc(rule_id or rule_name)}</strong>.'
+                       if is_thai else f'Content on Slide {esc(slide)} matched the configured review rule <strong>{esc(rule_id or rule_name)}</strong>.')
+    why_fallback = "ระบบพบเนื้อหาที่ควรตรวจสอบตามกฎที่ตั้งค่าไว้" if is_thai else "The configured review rule identified content that should be reviewed."
     if ai_available:
         ai_panel = (
-            f'<details class="msa-ai-disclosure">'
+            f'<details class="msa-ai-disclosure msa-finding-ai">'
             f'<summary>'
-            f'<span class="msa-ai-disclosure-title">View AI Explanation</span>'
-            f'<span class="msa-ai-disclosure-meta">AI ASSISTED · Contextual support only</span>'
+            f'<span class="msa-ai-disclosure-title"><span class="msa-ai-sparkle" aria-hidden="true">✧</span>{esc(ai_title)}</span>'
+            f'<span class="msa-ai-disclosure-meta">{esc(ai_meta)} <span class="msa-ai-chevron" aria-hidden="true">⌄</span></span>'
             f'</summary>'
             f'<div class="msa-ai-explanation-card">'
-            f'<div class="msa-ai-explanation-top"><div class="msa-ai-field-label">AI-ASSISTED EXPLANATION</div>'
-            f'<span class="msa-status-pill msa-status-info">AI ASSISTED</span></div>'
-            f'<div class="msa-ai-explanation-title">Additional context for human review</div>'
-            f'<div class="msa-ai-explanation-text">{esc(ai["explanation"])}</div>'
-            f'<div class="msa-ai-explanation-context"><div class="msa-ai-field-label">Context Signal</div>{esc(ai["context"])}</div>'
-            f'<div class="msa-ai-explanation-context"><div class="msa-ai-field-label">Suggested Review Action</div>{esc(ai["recommendation"])}</div>'
-            f'<div class="msa-ai-disclaimer">AI provides contextual support only. Final compliance decision remains with the Nominated Signatory.</div>'
-            f'</div>'
-            f'</details>'
+            f'<div class="msa-ai-explanation-top"><div class="msa-ai-field-label">{esc(explanation_label)}</div>'
+            f'<span class="msa-status-pill msa-status-info">{("มี AI ช่วยวิเคราะห์" if is_thai else "AI ASSISTED")}</span></div>'
+            f'<div class="msa-ai-explanation-title">{esc(ai_explanation_title)}</div>'
+            f'<div class="msa-ai-explanation-text">{esc(explanation_display)}</div>'
+            f'<div class="msa-ai-explanation-context"><div class="msa-ai-field-label">{esc(context_label)}</div>{esc(context_display)}</div>'
+            f'<div class="msa-ai-explanation-context"><div class="msa-ai-field-label">{esc(suggestion_label)}</div>{esc(suggestion_display)}</div>'
+            f'<div class="msa-ai-disclaimer">{esc(disclaimer)}</div>'
+            f'</div></details>'
         )
 
-    # Phase 2 WOW sequence:
-    # 1) Finding — what was detected
-    # 2) Evidence — what in the material supports the finding
-    # 3) Why flagged — why the configured rule matters
-    # 4) Recommendation — what the reviewer should do next
-    render_html(
-        f'<div class="msa-finding-card {status_class(severity)}">'
-        f'<div class="msa-finding-top"><div>'
-        f'<div class="msa-finding-title">{esc(rule_name)}</div>'
-        f'<div class="msa-finding-meta">Slide {esc(slide)} · Rule {esc(rule_id)} · {esc(action)}</div>'
-        f'</div><span class="msa-status-pill {status_class(severity)}">{esc(severity)}</span></div>'
+    def row(icon, label, content, extra_class=""):
+        return (
+            f'<div class="msa-finding-row {extra_class}">'
+            f'<div class="msa-finding-row-label">'
+            f'<span class="msa-finding-row-icon" aria-hidden="true">{icon}</span>'
+            f'<span>{label}</span></div>'
+            f'<div class="msa-finding-row-content">{content}</div>'
+            f'</div>'
+        )
 
-        f'<div class="msa-finding-field"><div class="msa-finding-label">Finding</div>'
-        f'<div class="msa-finding-text">Content on Slide {esc(slide)} matched the configured review rule <strong>{esc(rule_id or rule_name)}</strong>.</div></div>'
-
-        f'<div class="msa-evidence-section"><div class="msa-evidence-label">Evidence</div>'
+    evidence_content = (
         f'<div class="msa-evidence-quote">{render_signal_chips(evidence_values)}'
-        f'<div class="msa-evidence-source">Evidence source: {esc(evidence_source)} · Slide {esc(slide)}</div>'
-        f'</div></div>'
-
-        f'{rule_note}'
-
-        f'<div class="msa-finding-field"><div class="msa-finding-label">Why was this flagged?</div>'
-        f'<div class="msa-finding-text">{esc(why)}</div></div>'
-
-        f'<div class="msa-finding-field msa-finding-action"><div class="msa-finding-label">Recommendation</div>'
-        f'<div class="msa-finding-action-text"><strong>{esc(recommendation)}</strong></div></div>'
-
-        f'{ai_panel}'
+        f'<div class="msa-evidence-source">{detected_source}</div>'
         f'</div>'
+    )
+    if is_thai:
+        why_text = "ระบบพบข้อความที่ตรงกับเงื่อนไขของกฎตรวจสอบ ควรพิจารณาข้อความและบริบทโดยรอบก่อนสรุปผล"
+        if why and any(token in str(why).casefold() for token in ("reference", "citation", "evidence", "claim")):
+            why_text = "ข้อความที่ตรวจพบอาจต้องตรวจสอบแหล่งอ้างอิงและหลักฐานสนับสนุนให้ตรงกับสิ่งที่กล่าวอ้าง"
+        why_content = esc(why_text)
+    else:
+        why_content = esc(why or "The configured review rule identified content that should be reviewed.")
+    recommendation_content = f'<strong>{esc(recommendation_display)}</strong>'
+    recommendation_label = "คำแนะนำ (Recommendation)" if language == "ไทย" else "Recommendation"
+    severity_display = {"high": "สูง", "medium": "ปานกลาง", "low": "ต่ำ", "review": "ควรตรวจสอบ", "info": "ข้อมูล"}.get(str(severity).strip().lower(), str(severity)) if is_thai else str(severity)
+    action_display = "ส่งให้ตรวจสอบ" if is_thai and str(action).upper() == "FLAG_FOR_REVIEW" else str(action)
+    rule_id_label = "รหัสกฎ" if is_thai else "Rule ID"
+
+    rule_note = ""
+    if rule_description:
+        rule_note = (
+            f'<div class="msa-finding-rule-note">'
+            f'<span class="msa-finding-rule-note-label">{esc(rule_note_label)}</span>'
+            f'<span>{esc(rule_description)}</span></div>'
+        )
+
+    return (
+        f'<article class="msa-finding-card msa-finding-layout {status_class(severity)}">'
+        f'<header class="msa-finding-top {status_class(severity)}">'
+        f'<span class="msa-finding-number">{int(rule_index)}</span>'
+        f'<div class="msa-finding-heading">'
+        f'<div class="msa-finding-title">{esc(rule_name)}</div>'
+        f'<div class="msa-finding-meta">{esc(rule_id_label)}: {esc(rule_id)} <span class="msa-meta-dot">·</span> {esc(action_display)}</div>'
+        f'</div>'
+        f'<span class="msa-status-pill {status_class(severity)}">{esc(severity_display)}</span>'
+        f'</header>'
+        f'<div class="msa-finding-rows">'
+        f'{row("⌕", finding_label, finding_content)}'
+        f'{row("▤", evidence_label, evidence_content, "msa-finding-evidence-row")}'
+        f'{rule_note}'
+        f'{row("▱", why_label, why_content)}'
+        f'{row("♧", recommendation_label, recommendation_content, "msa-finding-recommendation-row")}'
+        f'</div>'
+        f'{ai_panel}'
+        f'</article>'
+    )
+
+
+def finding_slide_key(finding):
+    """Return a stable slide key for grouping rule findings."""
+    value = finding.get("slide_number", finding.get("slide", "?"))
+    return str(value if value not in (None, "") else "?")
+
+
+def slide_group_severity(items):
+    """Return the highest severity present on a slide without changing rule results."""
+    rank = {"high": 3, "medium": 2, "review": 2, "low": 1, "info": 0}
+    def score(item):
+        return rank.get(str(item.get("severity", "Review")).strip().lower(), 0)
+    highest = max(items, key=score)
+    return highest.get("severity", "Review")
+
+
+def render_slide_findings_group(slide_key, items, evidence, ai_result):
+    """Render a collapsed-by-default slide group, keeping individual rule findings intact."""
+    severity = slide_group_severity(items)
+    rule_count = len(items)
+    is_thai = st.session_state.get("result_language", "English") == "ไทย"
+    rule_label = ("กฎ" if is_thai else ("rule" if rule_count == 1 else "rules"))
+    child_cards = "".join(
+        render_finding_card(item, evidence, ai_result, rule_index=index)
+        for index, item in enumerate(items, start=1)
+    )
+    return (
+        f'<details class="msa-slide-group {status_class(severity)}">'
+        f'<summary class="msa-slide-group-header">'
+        f'<span class="msa-slide-group-summary-icon" aria-hidden="true">'
+        f'<svg viewBox="0 0 24 24" focusable="false"><path d="M7 9.5l5 5 5-5" /></svg>'
+        f'</span>'
+        f'<span class="msa-slide-group-heading">'
+        f'<span class="msa-slide-group-title">{("สไลด์ " if is_thai else "Slide ")}{esc(slide_key)}</span>'
+        f'<span class="msa-slide-group-meta">{(str(rule_count) + " " + rule_label + " ที่ตรวจพบ · คลิกเพื่อดูรายละเอียด") if is_thai else (str(rule_count) + " " + rule_label + " detected · Click to expand findings")}</span>'
+        f'</span>'
+        f'<span class="msa-slide-group-badges">'
+        f'<span class="msa-slide-group-count">{rule_count} {rule_label}</span>'
+        f'<span class="msa-status-pill {status_class(severity)}">{("ระดับสูงสุด: " if is_thai else "Highest: ")}{esc({"high":"สูง","medium":"ปานกลาง","low":"ต่ำ","review":"ควรตรวจสอบ","info":"ข้อมูล"}.get(str(severity).strip().lower(), str(severity)) if is_thai else severity)}</span>'
+        f'</span>'
+        f'</summary>'
+        f'<div class="msa-slide-group-body">{child_cards}</div>'
+        f'</details>'
     )
 
 
@@ -924,7 +1144,6 @@ def render_evidence_card(item):
         "recommendation",
         "Review the detected content and confirm that it is supported by the applicable reference.",
     )
-    source = item.get("source", "Rule Engine")
 
     render_html(
         f'<div class="msa-evidence-card">'
@@ -938,7 +1157,6 @@ def render_evidence_card(item):
         f'<div class="msa-evidence-section"><div class="msa-evidence-label">Rule Description</div><div>{esc(rule_description or "Configured review rule.")}</div></div>'
         f'<div class="msa-evidence-section"><div class="msa-evidence-label">Why was this flagged?</div><div>{esc(why or "The rule matched content in the material.")}</div></div>'
         f'<div class="msa-evidence-section msa-evidence-recommendation"><div class="msa-evidence-label">Recommended Action</div><strong>{esc(recommendation)}</strong></div>'
-        f'<div class="msa-evidence-source">Evidence source: {esc(source)}</div>'
         f'</div>'
     )
 
@@ -1052,6 +1270,106 @@ def rule_management_auth_gate():
     return False
 
 
+
+def read_xlsx_sheet_rows(file_bytes, target_sheet_name="Rule Catalog"):
+    """Read rows from a worksheet in an .xlsx workbook using only Python stdlib.
+
+    This keeps Rule Catalog import usable in locked-down environments where
+    optional packages such as openpyxl are not installed.
+    """
+    ns_main = "http://schemas.openxmlformats.org/spreadsheetml/2006/main"
+    ns_rel_doc = "http://schemas.openxmlformats.org/officeDocument/2006/relationships"
+    ns_rel_pkg = "http://schemas.openxmlformats.org/package/2006/relationships"
+    ns = {"main": ns_main, "r": ns_rel_doc, "rel": ns_rel_pkg}
+
+    with zipfile.ZipFile(BytesIO(file_bytes)) as archive:
+        names = set(archive.namelist())
+        if "xl/workbook.xml" not in names:
+            raise ValueError("This file is not a valid Excel .xlsx workbook.")
+
+        shared_strings = []
+        if "xl/sharedStrings.xml" in names:
+            root = ET.fromstring(archive.read("xl/sharedStrings.xml"))
+            for item in root.findall("main:si", ns):
+                shared_strings.append("".join(
+                    node.text or "" for node in item.findall(".//main:t", ns)
+                ))
+
+        workbook_root = ET.fromstring(archive.read("xl/workbook.xml"))
+        sheet_target = None
+        for sheet in workbook_root.findall("main:sheets/main:sheet", ns):
+            if sheet.attrib.get("name") == target_sheet_name:
+                rel_id = sheet.attrib.get("{" + ns_rel_doc + "}id")
+                sheet_target = rel_id
+                break
+        if not sheet_target:
+            raise ValueError(f"Workbook must contain an '{target_sheet_name}' sheet.")
+
+        rels_path = "xl/_rels/workbook.xml.rels"
+        if rels_path not in names:
+            raise ValueError("Excel workbook is missing worksheet relationships.")
+        rels_root = ET.fromstring(archive.read(rels_path))
+        target_path = None
+        for rel in rels_root.findall("rel:Relationship", ns):
+            if rel.attrib.get("Id") == sheet_target:
+                target_path = rel.attrib.get("Target")
+                break
+        if not target_path:
+            raise ValueError(f"Could not locate the '{target_sheet_name}' worksheet.")
+
+        if target_path.startswith("/"):
+            worksheet_path = target_path.lstrip("/")
+        else:
+            worksheet_path = posixpath.normpath(posixpath.join("xl", target_path))
+        if worksheet_path not in names:
+            raise ValueError(f"Worksheet file not found: {target_sheet_name}")
+
+        worksheet_root = ET.fromstring(archive.read(worksheet_path))
+        rows_out = []
+        sheet_data = worksheet_root.find("main:sheetData", ns)
+        if sheet_data is None:
+            return rows_out
+
+        def column_index(cell_ref):
+            letters = "".join(ch for ch in cell_ref if ch.isalpha())
+            index = 0
+            for ch in letters.upper():
+                index = index * 26 + ord(ch) - ord("A") + 1
+            return max(index - 1, 0)
+
+        for row in sheet_data.findall("main:row", ns):
+            row_values = []
+            for cell in row.findall("main:c", ns):
+                ref = cell.attrib.get("r", "A1")
+                col = column_index(ref)
+                while len(row_values) <= col:
+                    row_values.append(None)
+
+                cell_type = cell.attrib.get("t", "")
+                value_node = cell.find("main:v", ns)
+                value = value_node.text if value_node is not None else None
+
+                if cell_type == "s" and value is not None:
+                    try:
+                        value = shared_strings[int(value)]
+                    except (ValueError, IndexError):
+                        value = ""
+                elif cell_type == "inlineStr":
+                    value = "".join(
+                        node.text or "" for node in cell.findall(".//main:t", ns)
+                    )
+                elif cell_type == "b" and value is not None:
+                    value = value == "1"
+
+                row_values[col] = value
+
+            rows_out.append(tuple(row_values))
+
+        # Normalize row width to the widest row for predictable dictionary mapping.
+        width = max((len(row) for row in rows_out), default=0)
+        return [tuple(list(row) + [None] * (width - len(row))) for row in rows_out]
+
+
 def rule_management_page():
     if not rule_management_auth_gate():
         return
@@ -1070,6 +1388,138 @@ def rule_management_page():
     if load_rules is None:
         st.error("Rule Management module could not be loaded.")
         return
+
+    with st.expander("Import Rule Catalog (.xlsx)", expanded=False):
+        st.caption(
+            "Upload the NS Rule Management workbook. MSA reads the 'Rule Catalog' sheet directly. "
+            "Only approved rules explicitly marked Active can become active in the engine."
+        )
+        catalog_file = st.file_uploader(
+            "Upload MSA Rule Management workbook",
+            type=["xlsx"],
+            key="rm_catalog_upload",
+        )
+        if st.button(
+            "Import Rule Catalog",
+            key="rm_import_catalog",
+            type="primary",
+            disabled=(catalog_file is None or upsert_rules is None),
+        ):
+            try:
+                worksheet_rows = read_xlsx_sheet_rows(catalog_file.getvalue(), "Rule Catalog")
+                if not worksheet_rows:
+                    raise ValueError("The 'Rule Catalog' sheet is empty.")
+
+                def _header_key(value):
+                    return re.sub(r"[^a-z0-9]+", " ", str(value or "").strip().lower()).strip()
+
+                headers = [_header_key(value) for value in worksheet_rows[0]]
+                if not headers or "rule id" not in headers:
+                    raise ValueError("Rule Catalog is missing the required 'Rule ID' column.")
+
+                def _get(record, *names):
+                    for name in names:
+                        value = record.get(_header_key(name))
+                        if value is not None and str(value).strip():
+                            return value
+                    return ""
+
+                imported = []
+                seen_ids = set()
+                for row_number, values in enumerate(worksheet_rows[1:], start=2):
+                    record = {headers[i]: values[i] if i < len(values) else None for i in range(len(headers))}
+                    raw_id = _get(record, "Rule ID", "rule_id")
+                    if not str(raw_id or "").strip():
+                        if any(str(v or "").strip() for v in values):
+                            raise ValueError(f"Rule Catalog row {row_number}: Rule ID is required.")
+                        continue
+
+                    rule_id = str(raw_id).strip()
+                    if rule_id in seen_ids:
+                        raise ValueError(f"Rule Catalog row {row_number}: duplicate Rule ID '{rule_id}'.")
+                    seen_ids.add(rule_id)
+
+                    raw_applies = str(_get(record, "Applies To", "applies_to") or "").strip()
+                    applies = [x.strip().upper().replace("-", "_") for x in re.split(r"[;,|]", raw_applies) if x.strip()]
+                    if not applies:
+                        raise ValueError(f"Rule Catalog row {row_number} ({rule_id}): Applies To is required.")
+                    if any(x not in {"PROMOMAT", "NON_PROMOMAT"} for x in applies):
+                        raise ValueError(f"Rule Catalog row {row_number} ({rule_id}): Applies To must contain PROMOMAT and/or NON-PROMOMAT.")
+                    applies = sorted(set(applies))
+
+                    raw_keywords = _get(record, "Keywords / Phrases (semicolon-separated)", "Keywords / Phrases", "Keywords", "keywords")
+                    keywords = [x.strip() for x in re.split(r"[;\r\n]+", str(raw_keywords or "")) if x.strip()]
+                    approval = str(_get(record, "Approval Status", "approval_status") or "PENDING_NS_SOP_OWNER_REVIEW").strip().upper()
+                    allowed = {"PENDING_NS_SOP_OWNER_REVIEW", "PENDING", "APPROVED", "NS_APPROVED", "APPROVED_BY_NS", "APPROVED_BY_SOP_OWNER"}
+                    if approval not in allowed:
+                        raise ValueError(f"Rule Catalog row {row_number} ({rule_id}): unsupported Approval Status '{approval}'.")
+                    approved = approval in {"APPROVED", "NS_APPROVED", "APPROVED_BY_NS", "APPROVED_BY_SOP_OWNER"}
+                    raw_status = str(_get(record, "Operational Status", "Status", "status") or "INACTIVE").strip().upper()
+                    requested_active = raw_status in {"ACTIVE", "APPROVED AND ACTIVE"}
+                    active = requested_active and approved
+                    if active and not keywords:
+                        raise ValueError(f"Rule Catalog row {row_number} ({rule_id}): add at least one value to 'Keywords / Phrases (semicolon-separated)' before activating this rule.")
+
+                    raw_type = str(_get(record, "Rule Type", "rule_type") or "KEYWORD").strip().upper()
+                    if "WORKFLOW" in raw_type or "CONTEXT" in raw_type or "HUMAN_REVIEW" in raw_type:
+                        runtime_type = "context"
+                    elif "PHRASE" in raw_type:
+                        runtime_type = "phrase"
+                    else:
+                        runtime_type = "keyword"
+                    matching_mode = str(_get(record, "Matching Mode", "matching_mode") or "").strip().upper()
+                    if "PHRASE" in matching_mode:
+                        runtime_type = "phrase"
+
+                    category = applies[0] if len(applies) == 1 else "BOTH"
+                    rule_name = str(_get(record, "Rule Name", "rule_name", "Topic") or rule_id).strip()
+                    topic = str(_get(record, "Topic", "topic") or "").strip()
+                    message = str(_get(record, "MSA Message", "Message", "message") or _get(record, "Source Requirement (paraphrased)") or rule_name).strip()
+                    recommended_action = str(_get(record, "Recommended Action", "recommended_action") or "Route this finding to NS for human review.").strip()
+                    imported.append({
+                        "rule_id": rule_id,
+                        "rule_name": rule_name,
+                        "topic": topic,
+                        "category": category,
+                        "applies_to": applies,
+                        "rule_type": runtime_type,
+                        "matching_mode": matching_mode or runtime_type.upper(),
+                        "keywords": keywords,
+                        "context": message,
+                        "severity": str(_get(record, "Severity (proposed; NS confirm)", "Severity", "severity") or "Medium").strip().title(),
+                        "action": "CONTEXT_ONLY" if "WORKFLOW" in raw_type else "FLAG_FOR_REVIEW",
+                        "description": recommended_action,
+                        "source_requirement": str(_get(record, "Source Requirement (paraphrased)") or "").strip(),
+                        "proposed_detection_logic": str(_get(record, "Proposed Detection Logic") or "").strip(),
+                        "status": "Active" if active else "Inactive",
+                        "approval_status": approval,
+                        "version": str(_get(record, "Rule Version", "Version", "rule_version") or "0.1").strip(),
+                        "source_document": str(_get(record, "Source Document", "source_document") or "").strip(),
+                        "source_version_status": str(_get(record, "Source Version / Status", "source_version_status") or "").strip(),
+                        "source_section_page": str(_get(record, "Source Section / Page (extracted)", "Source Section / Page", "source_section_page") or "").strip(),
+                        "effective_date": str(_get(record, "Effective Date", "effective_date") or "").strip(),
+                        "rule_owner": str(_get(record, "Rule Owner", "rule_owner") or "NS / SOP Owner").strip(),
+                        "approved_by": str(_get(record, "Approved By", "approved_by") or "").strip(),
+                        "approved_at": str(_get(record, "Approved At", "approved_at") or "").strip(),
+                        "positive_test_case": str(_get(record, "Positive Test Case") or "").strip(),
+                        "negative_test_case_limitation": str(_get(record, "Negative Test Case / Limitation") or "").strip(),
+                        "notes_dependencies": str(_get(record, "Notes / Dependencies") or "").strip(),
+                        "import_row": row_number,
+                    })
+                if not imported:
+                    raise ValueError("No rules with a Rule ID were found in the Rule Catalog sheet.")
+                result = upsert_rules(imported)
+                active_count = sum(1 for item in imported if item["status"] == "Active")
+                st.success(
+                    f"Rule Catalog imported successfully — {result['upserted']} rules processed "
+                    f"({result['created']} new, {result['updated']} updated). "
+                    f"{active_count} rule(s) are Active based on the approval and operational "
+                    f"status recorded in Excel."
+                )
+                # Keep the import panel compact. Detailed keyword diagnostics are omitted
+                # from the main UI; imported rules remain visible in the Rule Management list.
+            except Exception as exc:
+                st.error(f"Import failed: {exc}")
 
     rules = load_rules()
 
@@ -1145,6 +1595,16 @@ def rule_management_page():
                     action = st.selectbox("Action", action_options, index=action_options.index(current_action), key=f"rm_action_{rid}")
 
                 description = st.text_area("Description", rule.get("description", ""), key=f"rm_desc_{rid}")
+                approval_options = ["PENDING_NS_SOP_OWNER_REVIEW", "APPROVED"]
+                current_approval = str(rule.get("approval_status", "")).strip().upper() or "APPROVED"
+                if current_approval not in approval_options:
+                    approval_options.append(current_approval)
+                approval_status = st.selectbox(
+                    "Approval Status", approval_options,
+                    index=approval_options.index(current_approval),
+                    key=f"rm_approval_{rid}",
+                    help="Only explicitly approved rules may be enabled in the screening engine."
+                )
                 st.caption(f"Version: {rule.get('version', '1.0')}")
 
                 save_col, status_col, delete_col = st.columns(3)
@@ -1161,6 +1621,7 @@ def rule_management_page():
                                 "severity": severity,
                                 "action": action,
                                 "description": description.strip(),
+                                "approval_status": approval_status,
                             })
                             set_rule_management_flash(f"{rid} saved successfully.")
                             st.rerun()
@@ -1177,7 +1638,11 @@ def rule_management_page():
                             except Exception as e:
                                 st.error(f"Unable to disable rule: {e}")
                     else:
-                        if st.button("Enable Rule", key=f"rm_enable_{rid}", use_container_width=True):
+                        approval_value = str(rule.get("approval_status", "")).strip().upper()
+                        approval_blocked = bool(approval_value) and approval_value not in {"APPROVED", "NS_APPROVED", "APPROVED_BY_NS", "APPROVED_BY_SOP_OWNER"}
+                        if approval_blocked:
+                            st.caption("Pending approval — save Approval Status as APPROVED before enabling.")
+                        if st.button("Enable Rule", key=f"rm_enable_{rid}", use_container_width=True, disabled=approval_blocked):
                             try:
                                 enable_rule(rid)
                                 set_rule_management_flash(f"{rid} enabled successfully.")
@@ -1210,6 +1675,7 @@ def rule_management_page():
         new_keywords = st.text_area("Keywords / Phrases — one per line", key="new_rule_keywords")
         new_context = st.text_area("Context", key="new_rule_context")
         new_description = st.text_area("Description", value="Illustrative screening rule used for prototype demonstration.", key="new_rule_description")
+        new_approval_status = st.selectbox("Approval Status", ["PENDING_NS_SOP_OWNER_REVIEW", "APPROVED"], key="new_rule_approval", help="Use APPROVED only after the appropriate NS/SOP Owner review.")
 
         if st.button("Add Rule", type="primary", key="add_rule"):
             try:
@@ -1229,7 +1695,9 @@ def rule_management_page():
                     "context": new_context.strip(),
                     "severity": new_severity,
                     "action": new_action,
-                    "status": "Active",
+                    "status": "Inactive" if new_approval_status != "APPROVED" else "Active",
+                    "approval_status": new_approval_status,
+                    "applies_to": [new_category],
                     "description": new_description.strip(),
                     "version": new_version.strip() or "1.0",
                 })
@@ -1263,6 +1731,17 @@ def render_results_nav():
                     if value != st.session_state.get("result_section"):
                         st.session_state.result_section = value
                         st.rerun()
+
+    # One global language selector for all result tabs; do not render it inside cards.
+    language_col, _ = st.columns([1.0, 5.0])
+    with language_col:
+        st.radio(
+            "Display language",
+            options=["English", "ไทย"],
+            horizontal=True,
+            key="result_language",
+            label_visibility="collapsed",
+        )
 
 
 def review_page():
@@ -1628,10 +2107,22 @@ def _render_findings_section():
     render_html('<div id="msa-findings"></div>')
     header("⌕", "Findings", "Potential issues identified by the configured review rules.")
     if findings:
+        grouped = {}
         for finding in findings:
-            render_finding_card(finding, evidence, ai)
+            key = finding_slide_key(finding)
+            grouped.setdefault(key, []).append(finding)
+
+        def slide_sort_key(value):
+            try:
+                return (0, int(value))
+            except (TypeError, ValueError):
+                return (1, str(value))
+
+        for slide_key in sorted(grouped, key=slide_sort_key):
+            render_html(render_slide_findings_group(slide_key, grouped[slide_key], evidence, ai))
     else:
-        render_html('<div class="msa-empty-card">No findings were generated by the configured rules.</div>')
+        empty_text = "ไม่พบรายการที่ตรงกับกฎตรวจสอบที่ตั้งค่าไว้" if st.session_state.get("result_language", "English") == "ไทย" else "No findings were generated by the configured rules."
+        render_html(f'<div class="msa-empty-card">{esc(empty_text)}</div>')
 
     # Evidence is intentionally presented inside each Finding card.
     # The Evidence Layer remains available in session state/backend, but the
@@ -1641,8 +2132,15 @@ def _render_findings_section():
 
 
 def _render_context_section():
+    is_thai = st.session_state.get("result_language", "English") == "ไทย"
     ai = st.session_state.ai_result or {}
-    header("◌", "Context Analysis", "The system identifies the business context of each slide to support the applicable review profile and rules.")
+    header(
+        "◌",
+        "การวิเคราะห์บริบท" if is_thai else "Context Analysis",
+        "ระบบระบุบริบททางธุรกิจของแต่ละสไลด์ เพื่อช่วยประกอบการเลือกแนวทางและกฎที่เกี่ยวข้อง"
+        if is_thai else
+        "The system identifies the business context of each slide to support the applicable review profile and rules.",
+    )
     context_items = ai.get("items", []) if isinstance(ai, dict) else []
     if context_items:
         def context_sort_key(item):
@@ -1652,117 +2150,276 @@ def _render_context_section():
             except (TypeError, ValueError):
                 return 0
 
+        category_translations = {
+            "BUSINESS_MEETING": "การประชุมทางธุรกิจ",
+            "PROMOTIONAL_CONTEXT": "บริบทเชิงส่งเสริมการขาย",
+            "NON_PROMOTIONAL_CONTEXT": "บริบทที่ไม่ใช่การส่งเสริมการขาย",
+            "NOT_CLASSIFIED": "ยังไม่จัดประเภท",
+            "UNCERTAIN": "ไม่แน่ชัด",
+            "UNKNOWN": "ไม่ทราบ",
+        }
+        reason_translations = {
+            "The slide contains meeting or discussion language, but there is not enough evidence to establish promotional context.":
+                "สไลด์มีถ้อยคำเกี่ยวกับการประชุมหรือการหารือ แต่ยังมีหลักฐานไม่เพียงพอที่จะระบุว่าเป็นบริบทส่งเสริมการขาย",
+            "The slide contains promotional/product-related indicators that may require promotional review.":
+                "สไลด์มีสัญญาณที่เกี่ยวข้องกับผลิตภัณฑ์หรือการส่งเสริมการขาย ซึ่งอาจต้องได้รับการตรวจสอบตามแนวทางสำหรับสื่อส่งเสริมการขาย",
+            "No meaningful contextual indicators were identified in the available slide text.":
+                "ไม่พบสัญญาณด้านบริบทที่มีนัยสำคัญจากข้อความสไลด์ที่มีอยู่",
+            "The slide contains no meaningful contextual indicators.":
+                "สไลด์ไม่มีสัญญาณด้านบริบทที่มีนัยสำคัญ",
+            "The slide contains non-promotional business context.":
+                "สไลด์มีบริบททางธุรกิจที่ไม่ใช่การส่งเสริมการขาย",
+            "The slide may contain product-related information that requires human review.":
+                "สไลด์อาจมีข้อมูลเกี่ยวกับผลิตภัณฑ์ที่ควรให้ผู้เชี่ยวชาญตรวจสอบ",
+            "No contextual interpretation available.":
+                "ไม่มีข้อมูลเพียงพอสำหรับอธิบายบริบทของสไลด์",
+        }
         context_cards = []
         for item in sorted(context_items, key=context_sort_key):
             slide_number = item.get("slide_number", item.get("slide", "?"))
-            category = item.get(
-                "classification",
-                item.get("category", "CONTEXT"),
-            )
+            category = item.get("classification", item.get("category", "CONTEXT"))
             confidence = item.get("confidence", 0)
-            reason = item.get(
-                "reason",
-                item.get("context", "No contextual interpretation available."),
-            )
-            keywords = item.get(
-                "matched_terms",
-                item.get("keywords", []),
-            )
+            category_key = str(category).strip().upper()
+            # Check NON_PROMOTIONAL before PROMOTIONAL because the former
+            # contains the latter as a substring.
+            if "NON_PROMOTIONAL" in category_key or "NON-PROMOTIONAL" in category_key or "NONPROMOTIONAL" in category_key:
+                category_class = "msa-context-category-nonpromotional"
+            elif "BUSINESS_MEETING" in category_key or "BUSINESS MEETING" in category_key:
+                category_class = "msa-context-category-business"
+            elif "PROMOTIONAL" in category_key:
+                category_class = "msa-context-category-promotional"
+            elif "UNCERTAIN" in category_key or "UNKNOWN" in category_key:
+                category_class = "msa-context-category-uncertain"
+            else:
+                category_class = "msa-context-category-unclassified"
+            reason = item.get("reason", item.get("context", "No contextual interpretation available."))
+            keywords = item.get("matched_terms", item.get("keywords", []))
             if isinstance(keywords, str):
                 keywords = [keywords]
-
+            display_category = category_translations.get(category_key, category.replace("_", " ").title()) if is_thai else category
+            reason_text = str(reason or "").strip()
+            if is_thai:
+                # Localize known classifier outputs and provide a safe Thai
+                # fallback for new English reason strings instead of leaking
+                # untranslated text into the Thai UI.
+                display_reason = reason_translations.get(reason_text)
+                if display_reason is None:
+                    reason_lower = reason_text.casefold()
+                    if "meeting" in reason_lower or "discussion" in reason_lower:
+                        display_reason = "สไลด์มีบริบทเกี่ยวกับการประชุมหรือการหารือ แต่หลักฐานยังไม่เพียงพอที่จะสรุปว่าเป็นสื่อส่งเสริมการขาย"
+                    elif "promotional" in reason_lower or "product-related" in reason_lower or "product related" in reason_lower:
+                        display_reason = "สไลด์มีสัญญาณที่เกี่ยวข้องกับผลิตภัณฑ์หรือการส่งเสริมการขาย ซึ่งควรตรวจสอบเพิ่มเติม"
+                    elif "no meaningful" in reason_lower or "no contextual" in reason_lower or "not identified" in reason_lower:
+                        display_reason = "ไม่พบสัญญาณด้านบริบทที่มีนัยสำคัญจากข้อความสไลด์ที่มีอยู่"
+                    elif not reason_text:
+                        display_reason = "ไม่มีข้อมูลเพียงพอสำหรับอธิบายบริบทของสไลด์"
+                    else:
+                        display_reason = "ระบบจัดประเภทบริบทจากข้อความในสไลด์ ควรตรวจสอบข้อความต้นฉบับประกอบก่อนสรุปผล"
+            else:
+                display_reason = reason_text
+            confidence_num = 0
+            try:
+                confidence_num = max(0, min(100, float(confidence)))
+            except (TypeError, ValueError):
+                pass
+            confidence_label = "ความเชื่อมั่น" if is_thai else "Confidence"
+            interpretation_label = "คำอธิบาย" if is_thai else "Interpretation"
+            slide_label = "สไลด์" if is_thai else "Slide"
             context_cards.append(
                 f'<div class="msa-context-card">'
                 f'<div class="msa-context-header">'
-                f'<strong>Slide {esc(slide_number)}</strong>'
-                f'<span class="msa-status-pill msa-status-info">{esc(category)}</span>'
+                f'<strong>{slide_label} {esc(slide_number)}</strong>'
+                f'<span class="msa-context-badge msa-context-category {category_class}">{esc(display_category)}</span>'
                 f'</div>'
                 f'<div class="msa-context-grid">'
-                f'<div><div class="msa-small-label">Confidence</div>'
-                f'<strong>{esc(confidence)}%</strong></div>'
-                f'<div><div class="msa-small-label">Interpretation</div>'
-                f'{esc(reason)}</div>'
-                f'</div>'
-                f'<div class="msa-chip-wrap">{render_signal_chips(keywords)}</div>'
-                f'</div>'
+                f'<div class="msa-context-confidence">'
+                f'<div class="msa-small-label">{confidence_label}</div>'
+                f'<div class="msa-confidence-line">'
+                f'<div class="msa-confidence-track" role="progressbar" '
+                f'aria-label="{slide_label} {esc(slide_number)} {confidence_label}" '
+                f'aria-valuemin="0" aria-valuemax="100" aria-valuenow="{confidence_num:.0f}">'
+                f'<span class="msa-confidence-fill '
+                f'{"msa-confidence-high" if confidence_num >= 90 else "msa-confidence-medium" if confidence_num >= 85 else "msa-confidence-low"}" '
+                f'style="width:{confidence_num}%"></span>'
+                f'</div><strong class="msa-confidence-value">{esc(confidence)}%</strong>'
+                f'</div></div>'
+                f'<div><div class="msa-small-label">{interpretation_label}</div>{esc(display_reason)}</div>'
+                f'</div><div class="msa-chip-wrap">{render_signal_chips(keywords)}</div></div>'
             )
         render_html('<div class="msa-context-grid-wrap">' + ''.join(context_cards) + '</div>')
     else:
-        render_html('<div class="msa-empty-card">No context analysis is available.</div>')
-
+        empty_text = "ยังไม่มีข้อมูลการวิเคราะห์บริบท" if is_thai else "No context analysis is available."
+        render_html(f'<div class="msa-empty-card">{esc(empty_text)}</div>')
 
 
 def _render_ai_section():
+    """Reviewer-oriented cross-slide synthesis; findings remain the source of truth."""
+    is_thai = st.session_state.get("result_language", "English") == "ไทย"
     ai = st.session_state.ai_result or {}
     analysis = st.session_state.analysis_result or {}
     findings = unique_findings(analysis)
-    header("✦", "AI Context Analysis", "AI-supported contextual interpretation. AI does not make the final compliance decision.")
 
-    ai_status = str(ai.get("status", "COMPLETED"))
-    ai_summary = ai.get("overall_summary", "Context analysis completed.")
-
-    # Surface one concrete AI explanation as the main intelligence moment.
-    # The detailed per-finding explanation remains available inside Findings.
-    spotlight_finding = findings[0] if findings else None
-    spotlight = build_ai_explanation(spotlight_finding, ai) if spotlight_finding else None
-
-    spotlight_html = ""
-    if spotlight_finding and spotlight:
-        spotlight_html = (
-            f'<div class="msa-ai-spotlight">'
-            f'<div class="msa-ai-spotlight-kicker">WHY THIS NEEDS HUMAN REVIEW</div>'
-            f'<div class="msa-ai-spotlight-title">Slide {esc(spotlight_finding.get("slide_number", spotlight_finding.get("slide", "?")))} · {esc(spotlight_finding.get("rule_name", "Configured Rule"))}</div>'
-            f'<div class="msa-ai-spotlight-text">{esc(spotlight.get("explanation", "Contextual explanation is available in the finding."))}</div>'
-            f'<div class="msa-ai-spotlight-grid">'
-            f'<div><div class="msa-ai-field-label">CONTEXT SIGNAL</div>{esc(spotlight.get("context", "Relevant material context was identified."))}</div>'
-            f'<div><div class="msa-ai-field-label">RECOMMENDED NEXT STEP</div>{esc(spotlight.get("recommendation", "Review the detected content against the applicable reference."))}</div>'
-            f'</div>'
-            f'</div>'
-        )
-
-    render_html(
-        f'<div class="msa-ai-card">'
-        f'<div class="msa-ai-top">'
-        f'<div><div class="msa-ai-field-label">ANALYSIS STATUS</div>'
-        f'<span class="msa-status-pill {status_class(ai_status)}">{esc(ai_status.title())}</span></div>'
-        f'<span class="msa-status-pill msa-status-info">AI ASSISTED</span>'
-        f'</div>'
-        f'<div class="msa-ai-field">'
-        f'<div class="msa-ai-field-label">OVERALL INTERPRETATION</div>'
-        f'{esc(ai_summary)}'
-        f'</div>'
-        f'{spotlight_html}'
-        f'</div>'
+    header(
+        "✦",
+        "สรุปประเด็นและแผนดำเนินการด้วย AI" if is_thai else "AI Review Priorities & Action Plan",
+        "สรุปประเด็นจากหลายสไลด์เพื่อช่วยจัดลำดับการตรวจสอบ ไม่ใช่คำตัดสิน Compliance ขั้นสุดท้าย"
+        if is_thai else
+        "A cross-slide summary to help prioritize human review. This is not a final compliance decision.",
     )
+
+    # Aggregate findings by rule so the tab adds cross-slide prioritization,
+    # rather than repeating the per-finding explanation already available in Findings.
+    rule_groups = {}
+    slide_numbers = set()
+    for finding in findings:
+        rule_id = str(finding.get("rule_id", finding.get("rule_code", "")) or "")
+        rule_name = str(finding.get("rule_name", finding.get("rule_title", "Configured Rule")) or "Configured Rule")
+        key = rule_id or rule_name
+        group = rule_groups.setdefault(key, {
+            "rule_id": rule_id, "rule_name": rule_name, "findings": [],
+            "slides": set(), "severity": "low", "terms": set()
+        })
+        group["findings"].append(finding)
+        slide = finding.get("slide_number", finding.get("slide"))
+        if slide is not None and str(slide).strip():
+            group["slides"].add(str(slide))
+            slide_numbers.add(str(slide))
+        severity = str(finding.get("severity", finding.get("risk_level", "low"))).casefold()
+        rank = {"critical": 4, "high": 3, "medium": 2, "low": 1}
+        if rank.get(severity, 1) > rank.get(group["severity"], 1):
+            group["severity"] = severity
+        terms = finding.get("matched_keywords", finding.get("matched_terms", finding.get("evidence_keywords", [])))
+        if isinstance(terms, str):
+            terms = [terms]
+        if isinstance(terms, (list, tuple, set)):
+            group["terms"].update(str(t) for t in terms if str(t).strip())
+
+    priority = {"critical": 0, "high": 1, "medium": 2, "low": 3}
+    groups = sorted(rule_groups.values(), key=lambda g: (priority.get(g["severity"], 4), -len(g["findings"]), g["rule_name"].casefold()))
+    high_count = sum(1 for f in findings if str(f.get("severity", f.get("risk_level", "low"))).casefold() in {"high", "critical"})
+    context_items = ai.get("items", []) if isinstance(ai, dict) else []
+    context_count = len(context_items) if isinstance(context_items, list) else 0
+
+    metric_labels = ("รายการ Findings", "สไลด์ที่พบประเด็น", "กฎที่เกี่ยวข้อง") if is_thai else ("Findings", "Slides flagged", "Rules involved")
+    metrics = [len(findings), len(slide_numbers), len(groups)]
+    render_html('<div class="msa-ai-metric-grid">' + ''.join(
+        f'<div class="msa-ai-metric"><div>{esc(label)}</div><strong>{esc(value)}</strong></div>'
+        for label, value in zip(metric_labels, metrics)
+    ) + '</div>')
+
+    if not groups:
+        render_html(f'<div class="msa-empty-card">{"ยังไม่มี Finding ให้จัดลำดับความสำคัญ" if is_thai else "No findings are available to prioritize."}</div>')
+    else:
+        render_html(f'<div class="msa-ai-section-title">{"ประเด็นที่ควรตรวจสอบก่อน" if is_thai else "Review priorities"}</div>')
+        cards = []
+        for index, group in enumerate(groups, 1):
+            slides = sorted(group["slides"], key=lambda x: (0, int(x)) if x.isdigit() else (1, x))
+            slide_text = ", ".join(slides)
+            count = len(group["findings"])
+            severity = group["severity"].title()
+            severity_th = {"Critical": "วิกฤต", "High": "สูง", "Medium": "ปานกลาง", "Low": "ต่ำ"}.get(severity, severity)
+            terms = sorted(group["terms"], key=str.casefold)[:10]
+            chips = ''.join(f'<span class="msa-ai-term">{esc(term)}</span>' for term in terms)
+            cards.append(
+                f'<article class="msa-ai-priority-card">'
+                f'<div class="msa-ai-priority-top"><span class="msa-ai-rank">{("ลำดับ " if is_thai else "Priority ")}{index}</span>'
+                f'<span class="msa-ai-severity msa-ai-severity-{esc(group["severity"])}">{esc(severity_th if is_thai else severity)}</span></div>'
+                f'<h3>{esc(group["rule_name"])}</h3>'
+                f'<div class="msa-ai-priority-meta">{esc(group["rule_id"])} · '
+                f'{("สไลด์ " if is_thai else "Slides ")}{esc(slide_text or "—")} · '
+                f'{count} {("รายการ" if is_thai else ("finding" if count == 1 else "findings"))}</div>'
+                f'<div class="msa-ai-term-list">{chips}</div>'
+                f'</article>'
+            )
+        render_html('<div class="msa-ai-priority-grid">' + ''.join(cards) + '</div>')
+
+        render_html(f'<div class="msa-ai-section-title">{"แผนดำเนินการที่แนะนำ" if is_thai else "Recommended action plan"}</div>')
+        actions = []
+        for index, group in enumerate(groups, 1):
+            representative = group["findings"][0]
+            explanation = build_ai_explanation(representative, ai) or {}
+            if is_thai:
+                _, _ = translate_ai_explanation(representative, explanation)
+                rec, _suggestion = translate_recommendation_suggestion(
+                    representative,
+                    explanation.get("recommendation", ""),
+                    explanation.get("suggestion", explanation.get("recommendation", "")),
+                )
+                fallback = "ตรวจสอบหลักฐานและแหล่งอ้างอิงที่เกี่ยวข้อง พร้อมยืนยันกับผู้รับผิดชอบและ NS ก่อนดำเนินการต่อ"
+            else:
+                rec = explanation.get("recommendation", explanation.get("suggestion", ""))
+                fallback = "Review the supporting evidence and applicable references with the material owner and NS before proceeding."
+            action_text = str(rec or fallback).strip()
+            slides = sorted(group["slides"], key=lambda x: (0, int(x)) if x.isdigit() else (1, x))
+            actions.append(
+                f'<article class="msa-ai-action-row"><div class="msa-ai-action-number">{index}</div>'
+                f'<div class="msa-ai-action-content"><h3>{esc(group["rule_name"])}</h3>'
+                f'<p>{esc(action_text)}</p><div class="msa-ai-priority-meta">{esc(group["rule_id"])} · '
+                f'{("สไลด์ " if is_thai else "Slides ")}{esc(", ".join(slides) or "—")}</div></div></article>'
+            )
+        render_html('<div class="msa-ai-action-list">' + ''.join(actions) + '</div>')
+
+    # Context to confirm: compact, color-coded rows for quick human review.
+    if context_items:
+        context_title = "ข้อมูลที่ควรยืนยันเพิ่มเติม" if is_thai else "Context to confirm"
+        context_subtitle = (
+            "ใช้ข้อมูลนี้ประกอบการพิจารณาและตรวจสอบกับเนื้อหาต้นฉบับ"
+            if is_thai else
+            "Use these signals to guide review against the original slide content."
+        )
+        render_html(
+            '<div class="msa-ai-context-heading">'
+            '<div class="msa-ai-context-heading-icon">▣</div>'
+            '<div><div class="msa-ai-section-title">' + esc(context_title) + '</div>'
+            '<div class="msa-ai-context-subtitle">' + esc(context_subtitle) + '</div></div></div>'
+        )
+        context_rows = []
+        for item in sorted(
+            context_items,
+            key=lambda x: int(x.get("slide_number", x.get("slide", 0)) or 0)
+            if str(x.get("slide_number", x.get("slide", 0)) or 0).isdigit() else 0
+        ):
+            slide = item.get("slide_number", item.get("slide", "?"))
+            raw_category = str(item.get("classification", item.get("category", "NOT_CLASSIFIED"))).upper()
+            category_map = {
+                "PROMOTIONAL_CONTEXT": ("บริบทเชิงส่งเสริมการขาย", "ส่งเสริมการขาย") if is_thai else ("Promotional context", "Promotional"),
+                "NON_PROMOTIONAL_CONTEXT": ("บริบทที่ไม่ใช่การส่งเสริมการขาย", "ไม่ใช่การส่งเสริมการขาย") if is_thai else ("Non-promotional context", "Non-promotional"),
+                "BUSINESS_MEETING": ("บริบทการประชุมทางธุรกิจ", "การประชุม") if is_thai else ("Business meeting context", "Business meeting"),
+                "NOT_CLASSIFIED": ("ยังไม่จัดประเภท", "ยังไม่จัดประเภท") if is_thai else ("Not classified", "Not classified"),
+                "UNCERTAIN": ("บริบทไม่ชัดเจน", "ควรตรวจสอบ") if is_thai else ("Uncertain context", "Review needed"),
+            }
+            category_title, category_tag = category_map.get(
+                raw_category,
+                (("ควรตรวจสอบบริบทเพิ่มเติม", "ควรตรวจสอบ") if is_thai else ("Context requires review", "Review needed"))
+            )
+            reason = str(item.get("reason", ""))
+            low = reason.casefold()
+            if is_thai:
+                if "meeting" in low or "discussion" in low:
+                    reason = "พบถ้อยคำเกี่ยวกับการประชุมหรือการหารือ ควรตรวจสอบบริบทจากเนื้อหาต้นฉบับ"
+                elif "promotional" in low or "product-related" in low:
+                    reason = "พบสัญญาณที่เกี่ยวข้องกับผลิตภัณฑ์หรือการส่งเสริมการขาย ควรตรวจสอบเพิ่มเติม"
+                else:
+                    reason = "ใช้เป็นข้อมูลประกอบการพิจารณาและตรวจสอบกับเนื้อหาต้นฉบับ"
+            elif not reason.strip():
+                reason = "Confirm the context against the original slide content."
+            row_class = "msa-ai-context-row msa-ai-context-promotional" if raw_category == "PROMOTIONAL_CONTEXT" else "msa-ai-context-row msa-ai-context-neutral"
+            slide_label = "สไลด์ " if is_thai else "Slide "
+            context_rows.append(
+                f'<div class="{row_class}"><div class="msa-ai-context-row-main">'
+                f'<div class="msa-ai-context-row-copy"><strong>{esc(slide_label + str(slide))} · {esc(category_title)}</strong>'
+                f'<span>{esc(reason)}</span></div>'
+                f'<div class="msa-ai-context-tag">{esc(category_tag)}</div></div></div>'
+            )
+        render_html('<div class="msa-ai-context-list">' + ''.join(context_rows) + '</div>')
 
     if ai.get("error"):
-        render_html(
-            f'<div class="msa-technical-note">'
-            f'Technical detail: {esc(ai.get("error"))}'
-            f'</div>'
-        )
-
-    render_html(
-        '<div class="msa-technical-note">'
-        'Finding explanation: Each finding uses the available slide-level context '
-        'to explain why human review may be needed. This is supporting analysis, '
-        'not a final compliance decision.'
-        '</div>'
-    )
-
-    header("▤", "Extracted Content", "PowerPoint text extracted slide-by-slide.")
-    slides_for_extraction = st.session_state.slides or []
-    with st.expander(f"View extracted content · {len(slides_for_extraction)} slides", expanded=False):
-        for slide in slides_for_extraction:
-            texts = slide.get("texts", [])
-            safe = [esc(x) for x in texts if str(x).strip()]
-            bullet_items = "".join(f'<li class="msa-extracted-item">{x}</li>' for x in safe)
-            render_html(
-                f'<div class="msa-slide-card msa-extracted-card"><div class="msa-slide-topline">'
-                f'<span class="msa-slide-pill">Slide {esc(slide.get("slide"))}</span><span class="msa-slide-count">Extracted content</span></div>'
-                f'<div class="msa-extracted-bubble"><div class="msa-small-label">Slide Content</div><ul>{bullet_items}</ul></div></div>'
-            )
-
+        render_html(f'<div class="msa-technical-note">{("รายละเอียดทางเทคนิค" if is_thai else "Technical detail")}: {esc(ai.get("error"))}</div>')
+    render_html('<div class="msa-technical-note">' + (
+        'ผลลัพธ์นี้ช่วยจัดลำดับการตรวจสอบเท่านั้น ต้องตรวจสอบหลักฐานและข้อมูลการอนุมัติที่เกี่ยวข้อง โดยการตัดสินใจ Compliance ขั้นสุดท้ายเป็นหน้าที่ของ NS'
+        if is_thai else
+        'This output only helps prioritize review. Supporting evidence and approval records must be checked; the final Compliance decision remains with the Nominated Signatory (NS).'
+    ) + '</div>')
 
 
 def _render_report_section():
@@ -2005,20 +2662,6 @@ render_hero()
 nav = render_application_nav()
 
 if nav != st.session_state.page:
-    # Leaving Rule Management automatically locks the restricted area.
-    # This ensures that returning to Rule Management requires the
-    # administrator password again.
-    if (
-        st.session_state.page == "Rule Management"
-        and nav == "Review"
-    ):
-        st.session_state.rule_admin_authenticated = False
-        st.session_state.rule_admin_login_error = ""
-        st.session_state.rule_admin_login_version = (
-            st.session_state.get("rule_admin_login_version", 0) + 1
-        )
-        st.session_state.rule_management_flash = None
-
     st.session_state.page = nav
     st.rerun()
 

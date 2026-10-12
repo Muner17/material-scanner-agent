@@ -202,49 +202,76 @@ def build_evidence(
             detected.append(item)
 
     # --------------------------------------------------------
-    # Why was this flagged?
+    # Rule-specific reviewer guidance (screening support only)
     # --------------------------------------------------------
+    normalized_name = normalize_text(rule_name)
+    normalized_id = normalize_text(rule_id)
+    normalized_terms = [normalize_text(x) for x in detected]
+    combined = " ".join([normalized_name, normalized_id] + normalized_terms)
 
-    if "comparative" in normalize_text(rule_name):
+    if any(token in combined for token in ("comparative", "more effective", "better than", "superior", "inferior", "compared")):
         why = (
-            "Comparative language was detected in the material. "
-            "The statement may require verification against the "
-            "applicable supporting evidence or reference."
+            f"The detected wording ({', '.join(detected[:4]) or rule_name}) may communicate a comparison or superiority claim. "
+            "The reviewer should check what is being compared, whether the comparison is fair and balanced, and whether the cited evidence directly supports it."
         )
-
-    elif "claim" in normalize_text(rule_name):
+        recommendation = (
+            "Identify the comparator and the exact outcome being compared, then check the cited study/reference for a direct, like-for-like comparison. "
+            "Confirm that relevant limitations and context are presented before the material proceeds."
+        )
+    elif any(token in combined for token in ("claim", "efficacy", "effectiveness", "safety", "benefit", "substantiat", "rule-0001")):
+        terms_text = ", ".join(detected[:5]) if detected else "the flagged claim wording"
         why = (
-            "Product-related claim language was detected. "
-            "The statement may require verification against the "
-            "applicable approved evidence or reference."
+            f"The rule matched {terms_text}. This wording may make a product-related efficacy, safety, or other factual claim; "
+            "the match alone does not establish whether the claim is accurate or acceptable."
         )
-
+        recommendation = (
+            "Locate the exact claim in the slide and trace it to the cited approved source. Check that the source supports the same product, population, "
+            "outcome and wording, and that any material qualifications are visible. Escalate unresolved evidence questions to the responsible reviewer/NS."
+        )
+    elif any(token in combined for token in ("off-label", "indication", "dosage", "dose", "population", "route of administration", "prescribing information")):
+        why = (
+            f"The rule matched wording associated with approved use or prescribing information ({', '.join(detected[:4]) or rule_name}). "
+            "The wording needs to be checked against the applicable locally approved product information."
+        )
+        recommendation = (
+            "Compare the statement with the current locally approved product information, including indication, population, dose and route where relevant. "
+            "Do not infer approval from the keyword match; refer any discrepancy to the responsible medical/regulatory reviewer."
+        )
+    elif any(token in combined for token in ("approval", "approved material", "expiry", "expiration", "expired", "renewal", "re-approval", "reapproval", "version")):
+        why = (
+            f"The rule matched an approval, validity or version-control indicator ({', '.join(detected[:4]) or rule_name}). "
+            "This may require a check of the material's approval record and current version."
+        )
+        recommendation = (
+            "Check the material ID and version against the authoritative approval record, including approval status and expiry/renewal date where applicable. "
+            "If the material changed after approval or the record cannot be confirmed, route it to the material owner/NS before use."
+        )
+    elif any(token in combined for token in ("privacy", "personal data", "cybersecurity", "it security", "copyright", "consent", "permission", "image rights")):
+        why = (
+            f"The rule matched a privacy, security, consent or rights-related indicator ({', '.join(detected[:4]) or rule_name}). "
+            "The text match does not by itself confirm a breach, but it identifies an item that may need specialist review."
+        )
+        recommendation = (
+            "Check the specific asset or data use, the applicable permission/consent and any required privacy or security notice. "
+            "Refer uncertain cases to the relevant privacy, IT security or rights owner rather than assuming the item is cleared."
+        )
+    elif any(token in combined for token in ("reference", "citation", "source", "evidence", "bibliography")):
+        why = (
+            f"The rule matched a reference or substantiation indicator ({', '.join(detected[:4]) or rule_name}). "
+            "The reviewer should verify that the source is present, traceable and supports the specific statement it accompanies."
+        )
+        recommendation = (
+            "Open the cited source and confirm that it supports the exact claim and context shown on this slide. Check that the citation is complete and that "
+            "the referenced source is the appropriate approved version; flag any unsupported wording for review."
+        )
     else:
         why = (
-            "Content matching the configured review rule was "
-            "detected and should be reviewed against the "
-            "applicable reference."
+            f"The configured rule '{rule_name or rule_id}' matched {', '.join(detected[:4]) if detected else 'content on this slide'}. "
+            "This is a screening signal, not a conclusion that the material is non-compliant."
         )
-
-    # --------------------------------------------------------
-    # Reviewer recommendation
-    # --------------------------------------------------------
-
-    if severity == "High":
         recommendation = (
-            "Verify the statement against the applicable "
-            "approved reference/evidence before proceeding."
-        )
-
-    elif severity == "Medium":
-        recommendation = (
-            "Review the detected content and confirm that it "
-            "is supported by the applicable reference."
-        )
-
-    else:
-        recommendation = (
-            "Review the detected content in context."
+            f"Review the matched wording in the context of this slide and the rule's purpose ({description or rule_name or rule_id}). "
+            "Confirm the relevant source, approval or process evidence, and refer any unresolved issue to the responsible reviewer/NS."
         )
 
     return {

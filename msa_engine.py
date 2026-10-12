@@ -1,24 +1,19 @@
 from typing import Any, Dict, List
+import re
 
 from ai_context_analysis import analyze_slide
 from rule_engine import evaluate_rules
-
-try:
-    from rule_manager import load_rules
-except Exception:
-    load_rules = None
+from rule_manager import get_active_rules
 
 
 def build_profile_mapping(category: str) -> Dict[str, Any]:
-    """Return the active rules mapped to the selected review profile.
+    """Return approved, active rules that apply to the selected review profile.
 
-    This is a configuration view for the prototype. It does not create
-    compliance decisions; it reports which active rules are configured
-    for the selected profile.
+    Rules may use a single category (legacy/demo schema) or an applies_to
+    list/string from the Rule Catalog. The mapping uses the same active-rule
+    gate as the Rule Engine, including approval-state enforcement.
     """
-    normalized = str(category or "").strip().upper()
-    if normalized == "NON-PROMOMAT":
-        normalized = "NON_PROMOMAT"
+    normalized = str(category or "").strip().upper().replace("-", "_").replace(" ", "_")
 
     if normalized not in {"PROMOMAT", "NON_PROMOMAT"}:
         return {
@@ -28,26 +23,42 @@ def build_profile_mapping(category: str) -> Dict[str, Any]:
         }
 
     rules = []
-    if load_rules is not None:
-        try:
-            all_rules = load_rules()
-        except Exception:
-            all_rules = []
-        for rule in all_rules if isinstance(all_rules, list) else []:
-            if not isinstance(rule, dict):
-                continue
-            rule_category = str(rule.get("category", "")).strip().upper()
-            status = str(rule.get("status", "")).strip().lower()
-            if rule_category == normalized and status == "active":
-                rules.append({
-                    "rule_id": rule.get("rule_id", ""),
-                    "rule_name": rule.get("rule_name", ""),
-                    "rule_type": rule.get("rule_type", ""),
-                    "severity": rule.get("severity", ""),
-                    "action": rule.get("action", ""),
-                    "version": rule.get("version", "1.0"),
-                    "description": rule.get("description", ""),
-                })
+    try:
+        active_rules = get_active_rules()
+    except Exception:
+        active_rules = []
+
+    for rule in active_rules if isinstance(active_rules, list) else []:
+        if not isinstance(rule, dict):
+            continue
+
+        raw_applies = rule.get("applies_to", rule.get("category", ""))
+        if isinstance(raw_applies, str):
+            applies_values = re.split(r"[;,|]", raw_applies)
+        elif isinstance(raw_applies, (list, tuple, set)):
+            applies_values = list(raw_applies)
+        else:
+            applies_values = []
+
+        # Include legacy category fields as a compatibility fallback.
+        applies_values.append(rule.get("category", ""))
+        applies = {
+            str(value or "").strip().upper().replace("-", "_").replace(" ", "_")
+            for value in applies_values
+            if str(value or "").strip()
+        }
+        if normalized not in applies and "BOTH" not in applies:
+            continue
+
+        rules.append({
+            "rule_id": rule.get("rule_id", ""),
+            "rule_name": rule.get("rule_name", ""),
+            "rule_type": rule.get("rule_type", ""),
+            "severity": rule.get("severity", ""),
+            "action": rule.get("action", rule.get("recommended_action", "")),
+            "version": rule.get("version", rule.get("rule_version", "1.0")),
+            "description": rule.get("description", rule.get("message", "")),
+        })
 
     return {
         "profile": normalized,
