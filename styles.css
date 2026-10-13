@@ -5050,3 +5050,87 @@ button[kind="primary"]:disabled {
         width: 100% !important;
     }
 }
+
+
+/* ============================================================
+   FINAL RESPONSIVE FIX — REVIEW PROFILE (iPad/tablet/mobile)
+   Overrides older profile-choice layout rules without affecting
+   other buttons or application sections.
+   ============================================================ */
+.st-key-review-profile-shell .st-key-review-profile-choices {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.st-key-review-profile-shell .st-key-review-profile-choices [data-testid="stHorizontalBlock"] {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    box-sizing: border-box !important;
+}
+
+.st-key-review-profile-shell .st-key-review-profile-choices [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+    flex: 1 1 0% !important;
+    width: 0 !important;
+    min-width: 0 !important;
+    max-width: 50% !important;
+    box-sizing: border-box !important;
+}
+
+.st-key-review-profile-shell .st-key-review-profile-choices .stButton,
+.st-key-review-profile-shell .st-key-review-profile-choices .stButton > div {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box !important;
+}
+
+.st-key-review-profile-shell .st-key-review-profile-choices .stButton > button {
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    min-height: 44px !important;
+    height: auto !important;
+    padding: 10px 8px !important;
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    word-break: keep-all !important;
+    box-sizing: border-box !important;
+    line-height: 1.25 !important;
+    font-size: clamp(12px, 1.6vw, 15px) !important;
+}
+
+.st-key-review-profile-shell .st-key-review-profile-choices .stButton > button p,
+.st-key-review-profile-shell .st-key-review-profile-choices .stButton > button span {
+    white-space: nowrap !important;
+    overflow-wrap: normal !important;
+    word-break: keep-all !important;
+    max-width: 100% !important;
+    line-height: 1.25 !important;
+}
+
+/* Very narrow phones: stack profile options instead of squeezing labels. */
+@media (max-width: 520px) {
+    .st-key-review-profile-shell .st-key-review-profile-choices [data-testid="stHorizontalBlock"] {
+        flex-wrap: wrap !important;
+    }
+
+    .st-key-review-profile-shell .st-key-review-profile-choices [data-testid="stHorizontalBlock"] > [data-testid="column"] {
+        flex: 1 1 100% !important;
+        width: 100% !important;
+        max-width: 100% !important;
+    }
+
+    .st-key-review-profile-shell .st-key-review-profile-choices .stButton > button {
+        font-size: 14px !important;
+        padding: 10px 12px !important;
+    }
+}

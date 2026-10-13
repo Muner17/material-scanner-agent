@@ -1792,20 +1792,22 @@ def review_page():
 
         current_profile = st.session_state.review_profile
         with st.container(key="review-profile-choices"):
-            c1, c2, _ = st.columns([0.15, 0.23, 0.62], gap="small")
+            # Equal-width columns prevent the profile buttons from overlapping
+            # on iPad/tablet layouts. CSS stacks them on narrow phone screens.
+            c1, c2 = st.columns([1, 1], gap="small")
             with c1:
                 promo_clicked = st.button(
                     "●  PROMOMAT",
                     key="review_profile_promomat_btn",
                     type="primary" if current_profile == PROMOMAT else "secondary",
-                    use_container_width=False,
+                    use_container_width=True,
                 )
             with c2:
                 nonpromo_clicked = st.button(
                     "●  NON-PROMOMAT",
                     key="review_profile_nonpromomat_btn",
                     type="primary" if current_profile == NON_PROMOMAT else "secondary",
-                    use_container_width=False,
+                    use_container_width=True,
                 )
 
         selected_profile = current_profile
