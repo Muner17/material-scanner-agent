@@ -1,5 +1,6 @@
 
 import streamlit as st
+import base64
 import os
 import zipfile
 import posixpath
@@ -104,10 +105,41 @@ for key, value in DEFAULTS.items():
 # ------------------------------------------------------------
 # CSS
 # ------------------------------------------------------------
-css_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "styles.css")
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+css_path = os.path.join(BASE_DIR, "styles.css")
+banner_path = os.path.join(BASE_DIR, "assets", "msa-banner.png")
+
 if os.path.exists(css_path):
     with open(css_path, "r", encoding="utf-8") as f:
-        st.markdown(f"<style>{f.read()}</style>", unsafe_allow_html=True)
+        css = f.read()
+
+    # Embed the local hero banner into the CSS so it works reliably in
+    # Streamlit both locally and on Streamlit Community Cloud. CSS-relative
+    # asset URLs may resolve against the Streamlit page rather than the repo.
+    if os.path.isfile(banner_path):
+        with open(banner_path, "rb") as f:
+            banner_base64 = base64.b64encode(f.read()).decode("ascii")
+
+        banner_data_uri = f"url('data:image/png;base64,{banner_base64}')"
+        css, replacements = re.subn(
+                r"""url\(\s*(['"]?)assets/msa-banner\.png\1\s*\)""",
+                lambda _match: banner_data_uri,
+                css,
+                flags=re.IGNORECASE,
+            )
+
+
+        # Keep the app running if the CSS path changes unexpectedly, while
+        # surfacing a clear diagnostic in the terminal logs.
+        if replacements == 0:
+            print(
+                "MSA banner image exists, but its URL was not "
+                "matched in styles.css. Check the .msa-hero-glass rule."
+            )
+    else:
+        print(f"MSA banner image not found: {banner_path}")
+
+    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
 
 # ------------------------------------------------------------
